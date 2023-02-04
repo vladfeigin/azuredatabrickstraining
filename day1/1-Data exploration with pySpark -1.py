@@ -167,7 +167,7 @@ display(result)
 # COMMAND ----------
 
 # MAGIC %md 
-# MAGIC ##### Data Quality research
+# MAGIC ##### Data Quality exploration
 
 # COMMAND ----------
 

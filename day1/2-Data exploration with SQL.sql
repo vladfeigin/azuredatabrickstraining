@@ -33,22 +33,12 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "")
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC ##### dbutils
--- MAGIC 
--- MAGIC Databricks utilities tool
--- MAGIC 
--- MAGIC You can do many opertations with dbutils, for more details see [dbutils](https://learn.microsoft.com/en-us/azure/databricks/dev-tools/databricks-utils)
--- MAGIC 
--- MAGIC List the content of ADLS folder:
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
 
 -- COMMAND ----------
 
 -- MAGIC %python
+-- MAGIC #List the content of ADLS folder
 -- MAGIC display(dbutils.fs.ls( f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/"))
 
 -- COMMAND ----------
@@ -141,11 +131,11 @@ describe extended flights_delays_external_303474
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC Pay attention that this table is ***External*** and the table format is CSV. Since it's an extrernal table, the location is the original one: the ADLS container.
+-- MAGIC Pay attention that this table is ***External*** and the table format is CSV. Since it's an extrernal table, the location is the original one: the Azure Data Lake Storage (ADLS) container.
 -- MAGIC 
 -- MAGIC Also you can see that there is no history for non-delta tables.
 -- MAGIC 
--- MAGIC The history is supported by Delta format in our case the table format is CSV
+-- MAGIC The history is supported by Delta format but this table is in CSV format.
 
 -- COMMAND ----------
 
@@ -225,7 +215,7 @@ create table flights_delays_external_typed_303474 (
 
 -- COMMAND ----------
 
--- With "inferSchema" = "true"
+-- You can use "inferSchema" = "true" option to infer types
 
 create table flights_delays_external_typed_infered_303474 (
 ) using csv options (
@@ -245,16 +235,17 @@ describe extended flights_delays_external_typed_infered_303474
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC #### CTEs
+-- MAGIC ##### CTEs
 -- MAGIC 
 -- MAGIC Spark supports CTEs - Common Table Expessions.
 -- MAGIC 
--- MAGIC CTEs defines a temporary result set that can be refernced multiple times in other queries 
+-- MAGIC CTEs defines a temporary result set that can be referenced multiple times in other following CTE queries 
 -- MAGIC 
 -- MAGIC In order to define CTE - you use `WITH` clause
 
 -- COMMAND ----------
 
+ -- define CTE
  with flights_dep_delays (origin_airport, dep_total_delays) as (
   select
     originairportname,
@@ -264,13 +255,14 @@ describe extended flights_delays_external_typed_infered_303474
   group by
     originairportname
 )
-
+-- use CTE
 select
   origin_airport,
   dep_total_delays
 from
   flights_dep_delays
 order by dep_total_delays desc
+limit 10
 
 -- COMMAND ----------
 
@@ -314,7 +306,7 @@ describe extended flights_delays_managed_delta_303474
 -- MAGIC %md
 -- MAGIC Note that CTAS syntax doesn't support schema definition (it infers the schema from query results)
 -- MAGIC 
--- MAGIC The recommended way to overcome it is to create a temp view, define schema for it and then run CTAS (similar as we did before but we used intermediate tables rather than temp views)
+-- MAGIC The recommended way to overcome it is to create a temp view, define or infer automatically the schema for it and then run CTAS (similar as we did before but we used intermediate tables rather than temp views)
 -- MAGIC 
 -- MAGIC Temp view exists only during Spark Session.
 -- MAGIC 
@@ -375,7 +367,8 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC You can create a final table in the specific location by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
+-- MAGIC You can create a table in the specific location in ADLS by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
+-- MAGIC In this case an external table will be created.
 
 -- COMMAND ----------
 
@@ -392,7 +385,7 @@ describe extended flights_delays_managed_delta_303474
 
 -- MAGIC %md
 -- MAGIC 
--- MAGIC #### Enriching data with additional meta-data
+-- MAGIC ##### Enriching data with additional meta-data
 
 -- COMMAND ----------
 
