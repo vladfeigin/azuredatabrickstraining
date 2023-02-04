@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC ### Excersise. Build Bronze Data Lake layer.
+-- MAGIC ### Exercise. Build Bronze Data Lake layer.
 -- MAGIC 
 -- MAGIC Bronze usually contains the raw data, converted into Delta Lake format. This data is infrequently accessed (cold data). Good for archiving to reduce storage cost.
 -- MAGIC 
