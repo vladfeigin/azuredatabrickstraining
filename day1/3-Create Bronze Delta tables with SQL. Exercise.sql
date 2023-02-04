@@ -38,6 +38,11 @@ use flights
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ###### FlightDelaysWithAirportCodes 
+
+-- COMMAND ----------
+
 create
 or replace temp view flight_delay_bronze_view using csv options (
   header = "true",
@@ -71,6 +76,11 @@ describe extended  flight_delay_bronze
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ###### AirportCodeLocationLookup 
+
+-- COMMAND ----------
+
 create or replace temp view airport_code_location_bronze_view
 using csv options (
   header = "true",
@@ -90,6 +100,11 @@ select * from airport_code_location_bronze_view
 -- COMMAND ----------
 
 select * from airport_code_location_bronze limit 10
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ###### FlightWeatherWithAirportCode
 
 -- COMMAND ----------
 
@@ -120,6 +135,25 @@ show tables
 
 -- MAGIC %python 
 -- MAGIC display(dbutils.fs.ls(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/"))
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ###### Create partitioned table
+
+-- COMMAND ----------
+
+create table flight_delay_bronze_part
+using delta 
+options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay_part/')
+partitioned by (Year,Month,DayofMonth)
+as 
+select * from flight_delay_bronze_view
+
+-- COMMAND ----------
+
+describe extended flight_delay_bronze_part
+
 
 -- COMMAND ----------
 
