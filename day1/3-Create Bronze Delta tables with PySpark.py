@@ -4,6 +4,8 @@
 # MAGIC Similary as we created Bronze tables with SQL in the previous exercise in this notebook we create delta tables with pySpark and SQL
 # MAGIC 
 # MAGIC Note that table name in this example is the same as file name (without .csv extension)
+# MAGIC 
+# MAGIC For every new table enter the table name in the widgets in the top of this notebok and run the same notebook without changing anything
 
 # COMMAND ----------
 
