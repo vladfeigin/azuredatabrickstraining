@@ -44,6 +44,8 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 # MAGIC 
 # MAGIC You can do many opertations with dbutils, for more details see [dbutils](https://learn.microsoft.com/en-us/azure/databricks/dev-tools/databricks-utils)
 # MAGIC 
+# MAGIC Run `dbutils.fs.help()` for the full list of functions.
+# MAGIC 
 # MAGIC In this example we list the content of ADLS folder _FlightsDelays_ in ADLS container:
 
 # COMMAND ----------
@@ -179,7 +181,7 @@ display(result)
 
 # COMMAND ----------
 
-df = spark.read.csv(f'abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv', header=True)
+df = spark.read.csv(f'abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv', header=True, inferSchema="true")
 display(df)
 
 # COMMAND ----------
@@ -199,6 +201,10 @@ print (f"{percentage_nulls_in_DepDel15} % null values in DepDel15 column")
 
 #let's do it simpler with dbutils
 dbutils.data.summarize(df)
+
+# COMMAND ----------
+
+dbutils.data.help("summarize")
 
 # COMMAND ----------
 
