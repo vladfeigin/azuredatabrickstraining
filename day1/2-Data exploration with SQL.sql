@@ -325,7 +325,7 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC Now run CTAS, which creates managed table from temp view
+-- MAGIC Now run CTAS, which creates `managed` table from temp view. Why managed?
 
 -- COMMAND ----------
 
@@ -339,8 +339,8 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC You can create a table in the specific location in ADLS by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
--- MAGIC In this case an external table will be created.
+-- MAGIC You can create a table in the specific location in Azure Blob Storage by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
+-- MAGIC In this case an `external` table will be created.
 
 -- COMMAND ----------
 
@@ -362,7 +362,7 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC Using built-in `current_timestamp()` and `curent_user` functions.
+-- MAGIC Databricks provides many built-in functions. In this example we use: `current_timestamp()` and `curent_user` functions.
 -- MAGIC 
 -- MAGIC There are many others, more details [databricks built-in functions](https://learn.microsoft.com/en-us/azure/databricks/sql/language-manual/functions/current_timestamp)
 

@@ -162,7 +162,8 @@ Exercise2
 # MAGIC %md
 # MAGIC 
 # MAGIC ##### Exercise 2
-# MAGIC Create a new SQL notebook for creating Delta Tables in Bronze by using solely SQL. 
+# MAGIC 
+# MAGIC Create a new **SQL** notebook for creating Delta Tables in Bronze. Create all 3 external tables in Bronze layer.
 # MAGIC 
 # MAGIC Hint: 
 # MAGIC 
@@ -170,24 +171,22 @@ Exercise2
 # MAGIC 
 # MAGIC       2. Use CTAS to create External tables
 # MAGIC       
-# MAGIC When you create External table, use:
+# MAGIC When you create External table, use ***path*** option(see example in the second notebook _"2-Data exploration with SQL"_ ):
 # MAGIC 
 # MAGIC ***options(
 # MAGIC   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightWithWeather/"
-# MAGIC )*** 
-# MAGIC 
-# MAGIC To indicate location of the files in datalake
-# MAGIC 
-# MAGIC See first notebook with examples.
+# MAGIC )***   to indicate location of the files in datalake.
 # MAGIC 
 # MAGIC 
-# MAGIC Create Partitioned table (select anyone you want for this exercise)
+# MAGIC Create Partitioned table (select any table you want for this exercise)
 # MAGIC 
 # MAGIC Hint: 
 # MAGIC 
-# MAGIC Use **** partitioned by (Year,Month,DayofMonth) *** 
+# MAGIC Use ***partitioned by (Year,Month,DayofMonth)*** 
 # MAGIC 
-# MAGIC  in CTAS when you create query for example:
+# MAGIC in CTAS when you create query.
+# MAGIC 
+# MAGIC for example:
 # MAGIC  
 # MAGIC _create table my_part_table_name
 # MAGIC using delta
@@ -196,7 +195,7 @@ Exercise2
 # MAGIC as
 # MAGIC select * from my_temp_view_
 # MAGIC 
-# MAGIC Run query by using partition fields.
+# MAGIC Run query by using partition fields (in WHERE clause)
 
 # COMMAND ----------
 
