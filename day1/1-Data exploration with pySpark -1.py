@@ -96,8 +96,12 @@ display(df.count())
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 # Using filter in DataFrame. Count total number of delays
-display(df.filter(df["DepDel15"] == "1").count())
+display(df.filter(df["DepDel15"] == 1).count())
 
 # COMMAND ----------
 
@@ -140,8 +144,6 @@ display(most_loaded_airport)
 # COMMAND ----------
 
 # count how many delays per Origin airport
-
-from pyspark.sql.types import IntegerType
 from pyspark.sql import functions as F
 
 #Calculate number of delays per origin airport

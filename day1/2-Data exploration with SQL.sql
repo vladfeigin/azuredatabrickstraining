@@ -44,37 +44,6 @@
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ##### Initial data exploration
--- MAGIC 
--- MAGIC Run sparkSQL directly on the files in ADLS.
--- MAGIC 
--- MAGIC Later we'll create schemas and tables 
-
--- COMMAND ----------
-
-
-
-select * from csv.`abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv`
-
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC Let's check other two tables
-
--- COMMAND ----------
-
--- MAGIC %sql
--- MAGIC select * from csv.`abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean.csv`
-
--- COMMAND ----------
-
--- MAGIC %sql
--- MAGIC select * from csv.`abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightWeatherWithAirportCode.csv`
-
--- COMMAND ----------
-
--- MAGIC %md
 -- MAGIC ##### Create schema and tables
 -- MAGIC 
 -- MAGIC After we explored the data we create schemas and tables in order to work with the data as we get used to work with regular data bases
@@ -107,7 +76,7 @@ use flights
 
 -- MAGIC %md 
 -- MAGIC 
--- MAGIC ###### Note! Please add to the table names unique prefix, example 5 digits of your ID
+-- MAGIC ###### Note! If you run in the same workspace - Please add to the table names unique prefix, example 5 digits of your ID to avoid conflicts 
 
 -- COMMAND ----------
 
@@ -215,7 +184,7 @@ create table flights_delays_external_typed_303474 (
 
 -- COMMAND ----------
 
--- You can use "inferSchema" = "true" option to infer types
+-- You can use "inferSchema" = "true" option to infer types instead specifying types as we did above
 
 create table flights_delays_external_typed_infered_303474 (
 ) using csv options (
@@ -289,11 +258,11 @@ describe extended flights_delays_managed_delta_303474
 -- MAGIC %md
 -- MAGIC Now the table type is `Managed`.  By default, if we don't specify the output format,  the tables are created in Delta format.
 -- MAGIC 
--- MAGIC For managed tables, the data is copied from original location (ADLS container) to the `schema` location in dbfs (Databricks file system). 
+-- MAGIC For managed tables, the data is copied from original location (ADLS container) to the `schema` location in dbfs (Databricks File System). 
 -- MAGIC 
--- MAGIC The Databricks File System (DBFS) is a distributed file system mounted into an Azure Databricks workspace and available on Azure Databricks clusters. 
+-- MAGIC The Databricks File System (DBFS) is a distributed file system mounted into an Azure Databricks Workspace and available on Azure Databricks clusters. 
 -- MAGIC 
--- MAGIC If you delete the table all this data will be deleted as well (not the case with `External` tables)
+-- MAGIC If you delete a ***Managed*** table all its data will be deleted as well (not the case with `External` tables)
 
 -- COMMAND ----------
 
@@ -304,13 +273,16 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md
+-- MAGIC ##### Temporay Views #####
+
+-- COMMAND ----------
+
+-- MAGIC %md
 -- MAGIC Note that CTAS syntax doesn't support schema definition (it infers the schema from query results)
 -- MAGIC 
--- MAGIC The recommended way to overcome it is to create a temp view, define or infer automatically the schema for it and then run CTAS (similar as we did before but we used intermediate tables rather than temp views)
+-- MAGIC The recommended way to overcome it is to create a Temporay View, define or infer automatically schema and then run CTAS (similar as we did before but we used intermediate tables rather than temp views)
 -- MAGIC 
--- MAGIC Temp view exists only during Spark Session.
--- MAGIC 
--- MAGIC For example
+-- MAGIC Temporary Viewes exist only during Spark Session.
 
 -- COMMAND ----------
 
@@ -390,7 +362,7 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC Using built-in `current_timestamp()` function
+-- MAGIC Using built-in `current_timestamp()` and `curent_user` functions.
 -- MAGIC 
 -- MAGIC There are many others, more details [databricks built-in functions](https://learn.microsoft.com/en-us/azure/databricks/sql/language-manual/functions/current_timestamp)
 
@@ -409,3 +381,7 @@ describe extended flights_delays_managed_delta_303474
 
 -- MAGIC %sql
 -- MAGIC select * from flights_delays_enriched_303474 limit 10
+
+-- COMMAND ----------
+
+
