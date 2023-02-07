@@ -286,41 +286,41 @@ describe extended flights_delays_managed_delta_303474
 
 -- COMMAND ----------
 
--- MAGIC %sql create
--- MAGIC or replace temp view flights_delays_temp_view_303474(
--- MAGIC   year int,
--- MAGIC   month int,
--- MAGIC   day int,
--- MAGIC   time int,
--- MAGIC   timezone int,
--- MAGIC   skycondition string,
--- MAGIC   visibility string,
--- MAGIC   weathertype string,
--- MAGIC   drybulbfarenheit string,
--- MAGIC   drybulbcelsius float,
--- MAGIC   wetbulbfarenheit float,
--- MAGIC   wetbulbcelsius float,
--- MAGIC   dewpointfarenheit float,
--- MAGIC   dewpointcelsius float,
--- MAGIC   relativehumidity int,
--- MAGIC   windspeed int,
--- MAGIC   winddirection int,
--- MAGIC   valueforwindcharacter int,
--- MAGIC   stationpressure float,
--- MAGIC   pressuretendency int,
--- MAGIC   pressurechange int,
--- MAGIC   sealevelpressure float,
--- MAGIC   recordtype string,
--- MAGIC   hourlyprecip string,
--- MAGIC   altimeter float,
--- MAGIC   airportcode string,
--- MAGIC   displayairportname string,
--- MAGIC   latitude float,
--- MAGIC   longitude float
--- MAGIC ) using csv options (
--- MAGIC   header = "true",
--- MAGIC   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightWeatherWithAirportCode.csv"
--- MAGIC )
+ create
+or replace temp view flights_delays_temp_view_303474(
+  year int,
+  month int,
+  day int,
+  time int,
+  timezone int,
+  skycondition string,
+  visibility string,
+  weathertype string,
+  drybulbfarenheit string,
+  drybulbcelsius float,
+  wetbulbfarenheit float,
+  wetbulbcelsius float,
+  dewpointfarenheit float,
+  dewpointcelsius float,
+  relativehumidity int,
+  windspeed int,
+  winddirection int,
+  valueforwindcharacter int,
+  stationpressure float,
+  pressuretendency int,
+  pressurechange int,
+  sealevelpressure float,
+  recordtype string,
+  hourlyprecip string,
+  altimeter float,
+  airportcode string,
+  displayairportname string,
+  latitude float,
+  longitude float
+) using csv options (
+  header = "true",
+  path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightWeatherWithAirportCode.csv"
+)
 
 -- COMMAND ----------
 
@@ -329,12 +329,12 @@ describe extended flights_delays_managed_delta_303474
 
 -- COMMAND ----------
 
--- MAGIC %sql create
--- MAGIC or replace table flights_delays_303474 as
--- MAGIC select
--- MAGIC   *
--- MAGIC from
--- MAGIC   flights_delays_temp_view_303474
+create
+or replace table flights_delays_303474 as
+select
+  *
+from
+  flights_delays_temp_view_303474
 
 -- COMMAND ----------
 
@@ -344,14 +344,14 @@ describe extended flights_delays_managed_delta_303474
 
 -- COMMAND ----------
 
--- MAGIC %sql create
--- MAGIC or replace table flights_delays_with_path_option_303474
--- MAGIC using delta options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/tableName/')
--- MAGIC as
--- MAGIC select
--- MAGIC   *
--- MAGIC from
--- MAGIC   flights_delays_temp_view_303474
+create
+or replace table flights_delays_with_path_option_303474
+using delta options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/tableName/')
+as
+select
+  *
+from
+  flights_delays_temp_view_303474
 
 -- COMMAND ----------
 
@@ -368,19 +368,19 @@ describe extended flights_delays_managed_delta_303474
 
 -- COMMAND ----------
 
--- MAGIC %sql create
--- MAGIC or replace table flights_delays_enriched_303474 as
--- MAGIC select
--- MAGIC   current_timestamp() as ingestiontime,
--- MAGIC   current_user as user,
--- MAGIC   *
--- MAGIC from
--- MAGIC   flights_delays_temp_view_303474
+create
+or replace table flights_delays_enriched_303474 as
+select
+  current_timestamp() as ingestiontime,
+  current_user as user,
+  *
+from
+  flights_delays_temp_view_303474
 
 -- COMMAND ----------
 
--- MAGIC %sql
--- MAGIC select * from flights_delays_enriched_303474 limit 10
+
+select * from flights_delays_enriched_303474 limit 10
 
 -- COMMAND ----------
 

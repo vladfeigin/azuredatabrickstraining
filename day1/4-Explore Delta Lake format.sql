@@ -146,6 +146,7 @@ select * from flight_delay_delta_demo_table
 -- COMMAND ----------
 
 -- trying insert into, error happens because a schema mismatch
+-- Error: Error in SQL statement: AnalysisException: A schema mismatch detected when writing to the Delta table
 insert into flight_delay_delta
 select * from flight_delay_delta_demo_table
 
