@@ -55,10 +55,6 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
-# MAGIC %md Now execute a SQL query using the `%sql` magic to select all columns from flight_delays_with_airport_codes. By default, only the first 1,000 rows will be returned.
-
-# COMMAND ----------
-
 # MAGIC %md Now let's see how many rows there are in the dataset.
 
 # COMMAND ----------
@@ -103,11 +99,7 @@ dfFlightDelays = spark.sql("select * from flight_delay_bronze")
 
 # COMMAND ----------
 
-print(dfFlightDelays.dtypes)
-
-# COMMAND ----------
-
-# MAGIC %md Notice that the DepDel15 and CRSDepTime columns are both `string` data types. Both of these features need to be numeric, according to their descriptions above. We will cast these columns to their required data types next.
+dfFlightDelays.printSchema()
 
 # COMMAND ----------
 
@@ -115,7 +107,7 @@ print(dfFlightDelays.dtypes)
 
 # COMMAND ----------
 
-# MAGIC %md To perform our data munging, we have multiple options, but in this case, we’ve chosen to take advantage of some useful features to perform the following tasks:
+# MAGIC %md To perform our data changes, we have multiple options, but in this case, we’ve chosen to take advantage of some useful features to perform the following tasks:
 # MAGIC 
 # MAGIC * Remove rows with missing values
 # MAGIC * Generate a new column, named “CRSDepHour,” which contains the rounded down value from CRSDepTime
@@ -123,21 +115,21 @@ print(dfFlightDelays.dtypes)
 
 # COMMAND ----------
 
-# Select only the columns we need, casting CRSDepTime as long and DepDel15 as int, into a new DataFrame
-dfflights = spark.sql("SELECT OriginAirportCode, OriginLatitude, OriginLongitude, Month, DayofMonth, cast(CRSDepTime as long) CRSDepTime, DayOfWeek, Carrier, DestAirportCode, DestLatitude, DestLongitude, cast(DepDel15 as int) DepDel15 from flight_delay_bronze")
+# Select only the columns we need. If needed you can cast column types as well.
+dfflights = spark.sql("SELECT OriginAirportCode, OriginLatitude, OriginLongitude, Month, DayofMonth, cast(CRSDepTime as long) CRSDepTime, DayOfWeek, Carrier, DestAirportCode, DestLatitude, DestLongitude, DepDel15 DepDel15 from flight_delay_bronze")
 
 # Delete rows containing missing values
 dfflights = dfflights.na.drop("any")
 
 # Round departure times down to the nearest hour, and export the result as a new column named "CRSDepHour"
-dfflights = dfflights.withColumn("CRSDepHour", F.floor(F.col('CRSDepTime') / 100))
+dfFlightDelays_Clean = dfflights.withColumn("CRSDepHour", F.floor(F.col('CRSDepTime') / 100))
 
-display(dfflights)
+display(dfFlightDelays_Clean)
 
 # COMMAND ----------
 
 # Create a Temporary Table / View with clean data from the DataFrame 
-dfflights.createOrReplaceTempView("flight_delays_view")
+dfFlightDelays_Clean.createOrReplaceTempView("flight_delays_view")
 
 # COMMAND ----------
 
@@ -165,10 +157,6 @@ dfflights.createOrReplaceTempView("flight_delays_view")
 
 # COMMAND ----------
 
-dfFlightDelays_Clean = spark.sql("select * from flight_delays_view")
-
-# COMMAND ----------
-
 # MAGIC %md ## Export the prepared data to persistent a global table
 
 # COMMAND ----------
@@ -185,22 +173,18 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS flight_delays_silver;
+# MAGIC drop table if exists flight_delay_silver;
 # MAGIC 
-# MAGIC CREATE TABLE flight_delays_silver
-# MAGIC USING DELTA 
-# MAGIC LOCATION 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/'
+# MAGIC create table flight_delay_silver
+# MAGIC using delta 
+# MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/'
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DESCRIBE TABLE EXTENDED flight_delays_silver
+# MAGIC describe table extended flight_delay_silver
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from flight_delays_silver limit 10
-
-# COMMAND ----------
-
-
+# MAGIC select * from flight_delay_silver limit 10
