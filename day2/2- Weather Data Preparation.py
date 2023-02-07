@@ -31,12 +31,17 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
-# MAGIC %md To begin, take a look at the `flight_weather_with_airport_code` data that was imported to get a sense of the data we will be working with.
+# MAGIC %md To begin, take a look at the `flight_with_weather_bronze` data that was imported to get a sense of the data we will be working with.
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from flight_weather_with_airport_code
+# MAGIC use flights
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -45,7 +50,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select count(*) from flight_weather_with_airport_code
+# MAGIC select count(*) from flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -58,7 +63,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct WindSpeed from flight_weather_with_airport_code
+# MAGIC select distinct WindSpeed from flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -71,7 +76,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct SeaLevelPressure from flight_weather_with_airport_code
+# MAGIC select distinct SeaLevelPressure from flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -84,7 +89,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select distinct HourlyPrecip from flight_weather_with_airport_code
+# MAGIC select distinct HourlyPrecip from flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -101,7 +106,6 @@ from pyspark.sql import functions as F
 # MAGIC * WindSpeed: Replace missing values with 0.0, and “M” values with 0.005
 # MAGIC * HourlyPrecip: Replace missing values with 0.0, and “T” values with 0.005
 # MAGIC * SeaLevelPressure: Replace “M” values with 29.92 (the average pressure)
-# MAGIC * Convert WindSpeed, HourlyPrecip, and SeaLevelPressure to numeric columns
 # MAGIC * Round “Time” column down to the nearest hour, and add value to a new column named “Hour”
 # MAGIC * Eliminate unneeded columns from the dataset
 
@@ -111,7 +115,7 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
-dfWeather = spark.sql("select AirportCode, cast(Month as int) Month, cast(Day as int) Day, cast(Time as int) Time, WindSpeed, SeaLevelPressure, HourlyPrecip from flight_weather_with_airport_code")
+dfWeather = spark.sql("select AirportCode, Month, Day, Time, WindSpeed, SeaLevelPressure, HourlyPrecip from flight_with_weather_bronze")
 
 # COMMAND ----------
 
@@ -123,7 +127,7 @@ dfWeather.show()
 
 # COMMAND ----------
 
-print(dfWeather.dtypes)
+dfWeather.printSchema()
 
 # COMMAND ----------
 
@@ -138,7 +142,7 @@ df = df.fillna('0.0', subset=['HourlyPrecip', 'WindSpeed'])
 df = df.replace('M', '0.005', 'WindSpeed')
 
 # Replace any SeaLevelPressure values of "M" with 29.92 (the average pressure)
-df = df.replace('M', '29.92', 'SeaLevelPressure')`
+df = df.replace('M', '29.92', 'SeaLevelPressure')
 
 # Replace any HourlyPrecip values of "T" (trace) with 0.005
 df = df.replace('T', '0.005', 'HourlyPrecip')
@@ -162,7 +166,7 @@ display(dfWeather_Clean)
 
 # COMMAND ----------
 
-print(dfWeather_Clean.dtypes)
+dfWeather_Clean.printSchema()
 
 # COMMAND ----------
 
@@ -170,24 +174,25 @@ print(dfWeather_Clean.dtypes)
 
 # COMMAND ----------
 
-dfWeather_Clean.write.mode("overwrite").save("/mnt/sparkcontainer/Silver/flight_weather_clean")
+dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS flight_weather_clean;
+# MAGIC DROP TABLE IF EXISTS flight_weather_silver;
 # MAGIC 
-# MAGIC CREATE TABLE flight_weather_clean
-# MAGIC USING DELTA LOCATION '/mnt/sparkcontainer/Silver/flight_weather_clean'
+# MAGIC CREATE TABLE flight_weather_silver
+# MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather"
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC describe extended flight_weather_clean
+# MAGIC describe extended flight_weather_silver
 
 # COMMAND ----------
 
-dfWeather_Clean.select("*").count()
+# MAGIC %sql
+# MAGIC select count(*) from flight_weather_silver
 
 # COMMAND ----------
 
