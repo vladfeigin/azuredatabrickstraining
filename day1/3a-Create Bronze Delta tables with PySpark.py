@@ -125,7 +125,12 @@ spark.conf.set("tables.location", bronze_table_location)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from ${table_name} limit 10
+# MAGIC select * from ${table_name}
+
+# COMMAND ----------
+
+# _sqldf is a built in Spark DataFrame created automatically when you work with SQL. It allows easily to mix pySpark and SQL codes in the same notebook
+_sqldf.count()
 
 # COMMAND ----------
 
@@ -138,30 +143,8 @@ spark.conf.set("tables.location", bronze_table_location)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ##### Exercise1
-# MAGIC Create External Table in `flights` data base but based on the partitioned files (by Year, Month, DayofMonths)
 # MAGIC 
-# MAGIC Note that partitioned Delta files are located here in the variable `bronze_table_location_partitioned`
-# MAGIC 
-# MAGIC First define Spark conf parameters as we did before in Python cell.
-# MAGIC 
-# MAGIC Second in %sql SET part_table_location = ${tables.location}
-# MAGIC 
-# MAGIC Create table in `flight` DB.
-# MAGIC 
-# MAGIC Test table by running count of rows. The resulst should be ***2719418*** rows.
-# MAGIC 
-# MAGIC Finally run SQL query with WHERE by year, month, dayofmonth and count how many flights where in some specific day.
-
-# COMMAND ----------
-
-Exercise2
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC 
-# MAGIC ##### Exercise 2
+# MAGIC ##### Exercise 
 # MAGIC 
 # MAGIC Create a new **SQL** notebook for creating Delta Tables in Bronze. Create all 3 external tables in Bronze layer.
 # MAGIC 
@@ -178,13 +161,12 @@ Exercise2
 # MAGIC )***   to indicate location of the files in datalake.
 # MAGIC 
 # MAGIC 
-# MAGIC Create Partitioned table (select any table you want for this exercise)
+# MAGIC Create partitioned table (select any table you want for this exercise)
 # MAGIC 
 # MAGIC Hint: 
 # MAGIC 
-# MAGIC Use ***partitioned by (Year,Month,DayofMonth)*** 
+# MAGIC In CTAS when you create query, use ***partitioned by (Year,Month,DayofMonth)*** 
 # MAGIC 
-# MAGIC in CTAS when you create query.
 # MAGIC 
 # MAGIC for example:
 # MAGIC  
@@ -196,7 +178,3 @@ Exercise2
 # MAGIC select * from my_temp_view_
 # MAGIC 
 # MAGIC Run query by using partition fields (in WHERE clause)
-
-# COMMAND ----------
-
-

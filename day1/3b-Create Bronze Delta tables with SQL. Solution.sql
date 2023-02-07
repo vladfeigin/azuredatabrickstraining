@@ -52,6 +52,8 @@ or replace temp view flight_delay_bronze_view using csv options (
 
 -- COMMAND ----------
 
+drop table if exists flight_delay_bronze;
+
 create table flight_delay_bronze
 using delta options(
 'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/'
@@ -72,7 +74,6 @@ describe extended  flight_delay_bronze
 
 -- MAGIC %python 
 -- MAGIC display(dbutils.fs.ls(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay"))
--- MAGIC display(dbutils.fs.ls(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay"))
 
 -- COMMAND ----------
 
@@ -90,6 +91,7 @@ using csv options (
 
 -- COMMAND ----------
 
+drop table if exists airport_code_location_bronze;
 create table airport_code_location_bronze
 options(
 'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/AirportCodeLocation/'
@@ -117,6 +119,7 @@ using csv options (
 
 -- COMMAND ----------
 
+drop table if exists flight_with_weather_bronze;
 create table flight_with_weather_bronze 
 options(
   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightWithWeather/"
@@ -143,18 +146,15 @@ show tables
 
 -- COMMAND ----------
 
+drop table if exists flight_delay_bronze_part;
 create table flight_delay_bronze_part
 using delta 
 options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay_part/')
-partitioned by (Year,Month,DayofMonth)
+partitioned by (Year, Month, DayofMonth)
 as 
 select * from flight_delay_bronze_view
 
 -- COMMAND ----------
 
 describe extended flight_delay_bronze_part
-
-
--- COMMAND ----------
-
 

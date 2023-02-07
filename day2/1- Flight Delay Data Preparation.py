@@ -95,10 +95,6 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
-# MAGIC %md Using `%sql` magic allows us view and visualize the data, but for working with the data in our tables, we want to take advantage of the rich optimizations provided by DataFrames. Let's execute the same query using Spark SQL, this time saving the query to a DataFrame.
-
-# COMMAND ----------
-
 dfFlightDelays = spark.sql("select * from flight_delay_bronze")
 
 # COMMAND ----------

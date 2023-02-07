@@ -52,10 +52,6 @@ describe extended flight_delay_delta
 
 -- COMMAND ----------
 
-
-
--- COMMAND ----------
-
 describe history flight_delay_delta
 
 -- COMMAND ----------
@@ -178,6 +174,10 @@ select * from flight_delay_delta_demo_table
 -- COMMAND ----------
 
 select count(*) from flight_delay_delta 
+
+-- COMMAND ----------
+
+vacuum flight_delay_delta
 
 -- COMMAND ----------
 

@@ -81,6 +81,7 @@ use flights
 -- COMMAND ----------
 
 -- Note we use header = "true"
+drop table if exists flights_delays_external_303474;
 
 create table flights_delays_external_303474
 using csv options (
@@ -156,6 +157,8 @@ describe table flights_delays_external_303474
 
 -- COMMAND ----------
 
+drop table if exists flights_delays_external_typed_303474;
+
 create table flights_delays_external_typed_303474 (
   year int,
   month int,
@@ -185,7 +188,7 @@ create table flights_delays_external_typed_303474 (
 -- COMMAND ----------
 
 -- You can use "inferSchema" = "true" option to infer types instead specifying types as we did above
-
+drop table if exists flights_delays_external_typed_infered_303474;
 create table flights_delays_external_typed_infered_303474 (
 ) using csv options (
   path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',
