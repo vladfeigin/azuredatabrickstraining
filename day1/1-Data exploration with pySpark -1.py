@@ -6,7 +6,7 @@
 # MAGIC 
 # MAGIC Here for simplicity we use SAS token.
 # MAGIC 
-# MAGIC Note: Replace the storage account and coontainer with your names  
+# MAGIC Note: Replace the storage account and coontainer with your names.  
 
 # COMMAND ----------
 
