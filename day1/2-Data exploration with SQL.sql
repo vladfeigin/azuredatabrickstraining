@@ -50,6 +50,7 @@
 
 -- COMMAND ----------
 
+
 create schema flights
 
 -- COMMAND ----------

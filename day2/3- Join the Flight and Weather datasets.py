@@ -47,7 +47,6 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 
 # COMMAND ----------
 
---
 dfFlightDelaysWithWeather = _sqldf
 
 # COMMAND ----------
@@ -56,7 +55,7 @@ dfFlightDelaysWithWeather = _sqldf
 
 # COMMAND ----------
 
-display(flight_delays_with_weather)
+display(dfFlightDelaysWithWeather)
 
 # COMMAND ----------
 
@@ -67,14 +66,14 @@ display(flight_delays_with_weather)
 #dfFlightDelaysWithWeather.write.mode("overwrite").save("/mnt/sparkcontainer/Gold/flight_delays_with_weather")
 
 dfFlightDelaysWithWeather.write.mode("overwrite").option("header","true").\
-csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/gold/FlightDelayWithWeather/")
+csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/gold/vladi/FlightDelayWithWeather/")
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC DROP TABLE IF EXISTS flight_delays_with_weather;
 # MAGIC CREATE TABLE flight_delays_with_weather
-# MAGIC USING CSV LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/gold/FlightDelayWithWeather/"
+# MAGIC USING CSV LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/gold/vladi/FlightDelayWithWeather/"
 
 # COMMAND ----------
 

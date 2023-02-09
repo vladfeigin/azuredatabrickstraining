@@ -34,7 +34,13 @@
 
 -- COMMAND ----------
 
-use flights
+create schema vladi
+
+-- COMMAND ----------
+
+-- Please use unique name
+
+use vladi
 
 -- COMMAND ----------
 
@@ -52,15 +58,52 @@ or replace temp view flight_delay_bronze_view using csv options (
 
 -- COMMAND ----------
 
-drop table if exists flight_delay_bronze;
+drop table if exists flight_delay_bronze_new;
 
-create table flight_delay_bronze
+create table flight_delay_bronze_new
 using delta options(
-'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/'
+'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/vladi/flight_delay_bronze_new/'
 )
 as 
 select * from flight_delay_bronze_view
 
+
+-- COMMAND ----------
+
+create table flight_delay_bronze_new
+using delta options(
+'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/vladi/flight_delay_bronze_new/'
+)
+
+
+-- COMMAND ----------
+
+select count(*) from flight_delay_bronze_new
+
+-- COMMAND ----------
+
+select count(*) from flight_delay_bronze_new where Carrier = 'DL'
+
+-- COMMAND ----------
+
+delete from flight_delay_bronze_new 
+where Carrier = 'DL'
+
+-- COMMAND ----------
+
+describe history flight_delay_bronze_new
+
+-- COMMAND ----------
+
+restore table flight_delay_bronze_new  version as of 10
+
+-- COMMAND ----------
+
+select * from flight_delay_bronze_new version as of 0
+
+-- COMMAND ----------
+
+drop table flight_delay_bronze_new
 
 -- COMMAND ----------
 
@@ -86,7 +129,11 @@ create or replace temp view airport_code_location_bronze_view
 using csv options (
   header = "true",
   inferSchema = "true",
-  path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean.csv"
+  path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean (2).csv"
+  
+  
+  "/mnt/sandboxes/FlightsDelays/AirportCodeLocationLookupClean (2).csv"
+)
 )
 
 -- COMMAND ----------
