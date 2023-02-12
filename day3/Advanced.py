@@ -21,6 +21,11 @@
 
 # COMMAND ----------
 
+# MAGIC %python
+# MAGIC display(dbutils.fs.ls( f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/"))
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC use flights
 
@@ -54,6 +59,7 @@ checkpoint_path = stream_path + "/checkpoint/"
 print (checkpoint_path)
 
 # COMMAND ----------
+
 
 query = dfs.repartition(1).\
 writeStream.format("json").\
@@ -102,6 +108,16 @@ _sqldf.rdd.getNumPartitions()
 # MAGIC %sql
 # MAGIC insert into flight_delay_bronze 
 # MAGIC select * from DL_records_view
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+import datetime
+receiverTimeoutDuration = datetime.time(0,3,20).strftime("PT%HH%MM%SS")
+print(receiverTimeoutDuration)
 
 # COMMAND ----------
 
