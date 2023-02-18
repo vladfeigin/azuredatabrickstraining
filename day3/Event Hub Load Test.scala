@@ -1,30 +1,26 @@
 // Databricks notebook source
-// MAGIC %python
-// MAGIC dbutils.widgets.removeAll()
-// MAGIC dbutils.widgets.text("storage_account", "")
-// MAGIC dbutils.widgets.text("container_name", "")
+dbutils.widgets.removeAll()
+dbutils.widgets.text("storage_account", "")
+dbutils.widgets.text("container_name", "")
 
 // COMMAND ----------
 
-// MAGIC %python
-// MAGIC storage_account = dbutils.widgets.get("storage_account")
-// MAGIC container_name = dbutils.widgets.get("container_name")
-// MAGIC print (storage_account)
-// MAGIC print (container_name)
+
+val storage_account = dbutils.widgets.get("storage_account")
+val container_name = dbutils.widgets.get("container_name")
+println (storage_account)
+println (container_name)
 
 // COMMAND ----------
 
-// MAGIC %python
-// MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
-// MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-// MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+
+spark.conf.set(s"fs.azure.account.auth.type.$storage_account.dfs.core.windows.net", "SAS")
+spark.conf.set(s"fs.azure.sas.token.provider.type.$storage_account.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
+spark.conf.set(s"fs.azure.sas.fixed.token.$storage_account.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
 
 // COMMAND ----------
 
-//display(dbutils.fs.ls( f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/"))
-val containerName = "labs-303474"
-val storageAccount = "asastoremcw303474"
-val abfssPath = s"abfss://$containerName@$storageAccount.dfs.core.windows.net/FlightsDelays/"
+val abfssPath = s"abfss://$container_name@$storage_account.dfs.core.windows.net/FlightsDelays/"
 println(abfssPath)
 
 // COMMAND ----------
@@ -34,29 +30,42 @@ println(abfssPath)
 
 // COMMAND ----------
 
+// MAGIC %sql
+// MAGIC restore table flight_delay_bronze version as of 1
+
+// COMMAND ----------
+
+// MAGIC %sql 
+// MAGIC select count(*) from flight_delay_bronze
+
+// COMMAND ----------
+
 import java.time.Duration
 import org.apache.spark.eventhubs.{ ConnectionStringBuilder, EventHubsConf, EventPosition }
 
 // To connect to an Event Hub, EntityPath is required as part of the connection string.
 // Here, we assume that the connection string from the Azure portal does not have the EntityPath part.
 val connectionString = ConnectionStringBuilder("Endpoint=sb://eventhubdemons303474.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=NehTzvWKVB7456H0J0OAPmE4mI7GuBX+Etalx5KhgUQ=")
-  .setEventHubName("eh1-303474")
+  .setEventHubName("flight-weather-20-partitions-test")
   .build
 
 val eventHubsConf = EventHubsConf(connectionString)
   //.setStartingPosition(EventPosition.fromEndOfStream)
     .setReceiverTimeout(Duration.ofSeconds(300))
-     .setMaxEventsPerTrigger(500)
+    .setOperationTimeout(Duration.ofSeconds(500))  
+    .setMaxEventsPerTrigger(10000) //previous value was 1000
+    .setStartingPosition(EventPosition.fromStartOfStream) 
 
 // COMMAND ----------
 
+// Read from delta lake table
 
 import org.apache.spark.sql.functions.{to_json, struct, col}
 
-val dfs = spark
+val tabledf = spark
   .readStream
   .option("ignoreChanges", "true")
-  .option("maxBytesPerTrigger", 1024)
+  .option("maxBytesPerTrigger", 8096)
   .format("delta")
   .table("flight_delay_bronze")
   .select("*")
@@ -65,17 +74,19 @@ val dfs = spark
 // COMMAND ----------
 
 
-val checkpointPath = "abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/FlightsDelays/stream/flightdelaybronze/checkpoint_scala/"
+val checkpointPath = s"abfss://$container_name@$storage_account.dfs.core.windows.net/FlightsDelays/stream/flightdelaybronze/checkpoint_flight_delay_bronze"
 
 
 // COMMAND ----------
 
+//write from delta table to EH 
 import org.apache.spark.sql.streaming.Trigger
-//.trigger(ProcessingTime("25 seconds"))
+
 val query =
-  dfs
+  tabledf
     .writeStream
     .format("eventhubs")
+    .queryName("write from delta table to EH")   
     .outputMode("update") 
     .options(eventHubsConf.toMap)
     .option("checkpointLocation", checkpointPath)
@@ -84,44 +95,24 @@ val query =
 
 // COMMAND ----------
 
-// MAGIC %sql
-// MAGIC create or replace temp view DL_records_view
-// MAGIC as select * from flight_delay_bronze where 
-// MAGIC Carrier = 'DL'
-
-// COMMAND ----------
-
-// MAGIC %sql select count(*) from DL_records_view
-
-// COMMAND ----------
-
-// MAGIC %sql
-// MAGIC insert into flight_delay_bronze 
-// MAGIC select * from DL_records_view
-
-// COMMAND ----------
-
-val df = spark
+//read from event hub
+val ehreaddf = spark
   .readStream
   .format("eventhubs")
   .options(eventHubsConf.toMap)
   .load()
+//val ehdatadf = df.select($"body" cast "string")
 
 // COMMAND ----------
 
-val ehdatadf = df.select($"body" cast "string")
-//display(ehdatadf)
+val outputPath = s"abfss://$containerName@$storageAccount.dfs.core.windows.net/FlightsDelays/stream/flightdelay/output_eh_2_dl"
 
-// COMMAND ----------
-
-val outputPath = "abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/FlightsDelays/stream/flightdelaybronze/output_eh_2_dl"
-
-val checkpointPath = "abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/FlightsDelays/stream/flightdelaybronze/checkpoint_eh_to_dl/"
+val checkpointPath = s"abfss://$containerName@$storageAccount.dfs.core.windows.net/FlightsDelays/stream/flightdelay/checkpoint_eh_2_dl/"
 
 
 // COMMAND ----------
 
-ehdatadf.repartition(1)
+ehreaddf
   .writeStream
   .format("json")
   .queryName("write from eh to datalake")
@@ -133,12 +124,25 @@ ehdatadf.repartition(1)
 
 // COMMAND ----------
 
-// MAGIC %sql 
-// MAGIC drop table if exists flight_delay_bronze_streamed_eh;
-// MAGIC create table flight_delay_bronze_streamed_eh 
-// MAGIC using json options(
-// MAGIC 'path' "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightdelaybronze/output_eh_2_dl"
-// MAGIC )
+// MAGIC %md 
+// MAGIC ##### generate additional stream of changes
+
+// COMMAND ----------
+
+// MAGIC %sql
+// MAGIC create or replace temp view DL_records_view
+// MAGIC as select * from flight_delay_bronze where 
+// MAGIC --Carrier = 'DL'
+
+// COMMAND ----------
+
+// MAGIC %sql
+// MAGIC insert into flight_delay_bronze 
+// MAGIC select * from DL_records_view
+
+// COMMAND ----------
+
+// MAGIC %md ##### check number of delivered rows
 
 // COMMAND ----------
 
@@ -146,11 +150,20 @@ ehdatadf.repartition(1)
 
 // COMMAND ----------
 
+// MAGIC %sql 
+// MAGIC drop table if exists flight_delay_bronze_streamed_eh;
+// MAGIC create table flight_delay_bronze_streamed_eh 
+// MAGIC using json options(
+// MAGIC 'path' "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightdelay/output_eh_2_dl"
+// MAGIC )
+
+// COMMAND ----------
+
 // MAGIC %sql refresh table flight_delay_bronze_streamed_eh
 
 // COMMAND ----------
 
-// MAGIC %sql select count(*) from flight_delay_bronze_streamed_eh
+// MAGIC %sql select count(*) from flight_delay_bronze_streamed_eh 
 
 // COMMAND ----------
 
