@@ -34,13 +34,13 @@
 
 -- COMMAND ----------
 
-create schema vladi
+create schema flight
 
 -- COMMAND ----------
 
 -- Please use unique name
 
-use vladi
+use flight
 
 -- COMMAND ----------
 
