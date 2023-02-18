@@ -98,10 +98,6 @@ display(df.count())
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # Using filter in DataFrame. Count total number of delays
 display(df.filter(df["DepDel15"] == 1).count())
 
@@ -200,7 +196,7 @@ print (f"{percentage_nulls_in_DepDel15} % null values in DepDel15 column")
 # COMMAND ----------
 
 #let's do it simpler with dbutils
-dbutils.data.summarize(df)
+t = dbutils.data.summarize(df)
 
 # COMMAND ----------
 

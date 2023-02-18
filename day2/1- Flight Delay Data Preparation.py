@@ -87,6 +87,11 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from flight_delay_bronze
+
+# COMMAND ----------
+
 # MAGIC %md Finally, we do not need all 20 columns present in the flight_delays_with_airport_codes dataset, so we will pare down the columns, or features, in the dataset to the 12 we do need.
 
 # COMMAND ----------
@@ -116,7 +121,7 @@ dfFlightDelays.printSchema()
 # COMMAND ----------
 
 # Select only the columns we need. If needed you can cast column types as well.
-dfflights = spark.sql("SELECT OriginAirportCode, OriginLatitude, OriginLongitude, Month, DayofMonth, cast(CRSDepTime as long) CRSDepTime, DayOfWeek, Carrier, DestAirportCode, DestLatitude, DestLongitude, DepDel15 DepDel15 from flight_delay_bronze")
+dfflights = spark.sql("SELECT OriginAirportCode, OriginLatitude, OriginLongitude, Month, DayofMonth, cast(CRSDepTime as long) CRSDepTime, DayOfWeek, Carrier, DestAirportCode, DestLatitude, DestLongitude, DepDel15 from flight_delay_bronze")
 
 # Delete rows containing missing values
 dfflights = dfflights.na.drop("any")
@@ -167,7 +172,7 @@ dfFlightDelays_Clean.createOrReplaceTempView("flight_delays_view")
 
 # COMMAND ----------
 
-dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/")
+dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightDelay/")
 
 
 # COMMAND ----------
@@ -177,7 +182,7 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 # MAGIC 
 # MAGIC create table flight_delay_silver
 # MAGIC using delta 
-# MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/'
+# MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightDelay/'
 
 # COMMAND ----------
 

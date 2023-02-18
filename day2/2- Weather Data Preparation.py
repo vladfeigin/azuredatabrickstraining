@@ -174,7 +174,7 @@ dfWeather_Clean.printSchema()
 
 # COMMAND ----------
 
-dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather")
+dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightWeather")
 
 # COMMAND ----------
 
@@ -182,7 +182,7 @@ dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage
 # MAGIC DROP TABLE IF EXISTS flight_weather_silver;
 # MAGIC 
 # MAGIC CREATE TABLE flight_weather_silver
-# MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather"
+# MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightWeather"
 
 # COMMAND ----------
 
