@@ -130,10 +130,6 @@ using csv options (
   header = "true",
   inferSchema = "true",
   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean (2).csv"
-  
-  
-  "/mnt/sandboxes/FlightsDelays/AirportCodeLocationLookupClean (2).csv"
-)
 )
 
 -- COMMAND ----------
