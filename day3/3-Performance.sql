@@ -56,6 +56,7 @@ select count(*) from flight_delay_bronze_view
 
 -- COMMAND ----------
 
+-- Create delta extrenal table as CTAS
 drop table if exists flight_delay_delta;
 
 create table flight_delay_delta
@@ -67,10 +68,15 @@ select * from flight_delay_bronze_view
 
 -- COMMAND ----------
 
-select * from flight_delay_delta
+describe extended flight_delay_delta
 
 -- COMMAND ----------
 
+select count(*) from flight_delay_delta
+
+-- COMMAND ----------
+
+-- Create CSV external table as CTAS
 drop table if exists flight_delay_csv;
 
 create table flight_delay_csv
@@ -82,10 +88,6 @@ select * from flight_delay_bronze_view
 
 -- COMMAND ----------
 
-select * from flight_delay_csv
-
--- COMMAND ----------
-
 select count(*) from flight_delay_csv
 
 -- COMMAND ----------
@@ -94,7 +96,7 @@ select count(*) from flight_delay_delta
 
 -- COMMAND ----------
 
-select max(DepDelay) as maxdelay, OriginAirportName as origin
+select max(DepDelay) as maxdelay, min(DepDelay) as minDelay,  avg (DepDelay) as avgDelay, OriginAirportName as origin
 from flight_delay_delta
 group by OriginAirportName
 order by maxdelay desc
@@ -102,7 +104,7 @@ order by maxdelay desc
 
 -- COMMAND ----------
 
-select max(DepDelay) as maxdelay, OriginAirportName as origin
+select max(DepDelay) as maxdelay, min(DepDelay) as minDelay, avg (DepDelay) as avgDelay, OriginAirportName as origin
 from flight_delay_csv
 group by OriginAirportName
 order by maxdelay desc
@@ -126,21 +128,35 @@ order by origin desc
 
 -- COMMAND ----------
 
+select count(*) from flight_delay_csv where OriginAirportName like '%Seattle%'
+
+-- COMMAND ----------
+
+select count(*) from flight_delay_delta where OriginAirportName like '%Seattle%'
+
+-- COMMAND ----------
+
+--refresh spark cache
 refresh table flight_delay_csv
 
 -- COMMAND ----------
 
 select count(*) as total_delays, OriginAirportName as origin 
 from flight_delay_csv
-where DepDelay >= 15 and Year==2013 and Month=7 and DayOfMonth=7
+where DepDelay >= 15 and Year=2013 and Month=7 and DayOfMonth=7
 group by OriginAirportName
 order by origin desc
 
 -- COMMAND ----------
 
+--refresh spark cache
+refresh table flight_delay_csv
+
+-- COMMAND ----------
+
 select count(*) as total_delays, OriginAirportName as origin 
 from flight_delay_delta
-where DepDelay >= 15 and Year==2013 and Month=7 and DayOfMonth=7
+where DepDelay >= 15 and Year=2013 and Month=7 and DayOfMonth=7
 group by OriginAirportName
 order by origin desc
 
@@ -180,13 +196,17 @@ refresh table flight_delay_delta
 
 select count(*) as total_delays, OriginAirportName as origin 
 from flight_delay_delta
-where DepDelay >= 15 and Year==2013 and Month=7 and DayOfMonth=7
+where Year=2013 and Month=7 and DayOfMonth=7 and DepDelay >= 15
 group by OriginAirportName
 order by origin desc
 
 -- COMMAND ----------
 
 optimize flight_delay_delta 
+
+-- COMMAND ----------
+
+describe history flight_delay_delta
 
 -- COMMAND ----------
 
@@ -199,13 +219,28 @@ zorder by  (Carrier)
 
 select count(*) as total_delays, OriginAirportName as origin 
 from flight_delay_delta
-where DepDelay >= 15 and Year==2013 and Month=7 and DayOfMonth=7 
+where  Year=2013 and Month=7 and DayOfMonth=7 and DepDelay >= 15 
 group by OriginAirportName
 order by origin desc
 
 -- COMMAND ----------
 
 describe history  flight_delay_delta
+
+-- COMMAND ----------
+
+optimize flight_delay_delta
+zorder by (Year, Month, DayOfMonth, DepDelay);
+optimize flight_delay_delta
+zorder by  (Carrier)
+
+-- COMMAND ----------
+
+select count(*) as total_delays, OriginAirportName as origin 
+from flight_delay_csv
+where  Year=2013 and Month=7 and DayOfMonth=7 and DepDelay >= 15 
+group by OriginAirportName
+order by origin desc
 
 -- COMMAND ----------
 
@@ -217,6 +252,11 @@ VACUUM flight_delay_delta RETAIN 0 HOURS DRY RUN
 -- COMMAND ----------
 
 VACUUM flight_delay_delta RETAIN 0 HOURS
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##### Check partitioning impact on the performance
 
 -- COMMAND ----------
 

@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC ##### This notebook demonstrate simple spark streaming capabilities
+# MAGIC ##### This notebook demonstrate simple Spark Streaming capabilities
 
 # COMMAND ----------
 
@@ -24,11 +24,10 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 
 # COMMAND ----------
 
-#read env variables (in cluster level)
+#read env variables (in cluster level), env variable in the cluster level
 import os
 
 event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
-
 
 # COMMAND ----------
 
@@ -37,12 +36,23 @@ event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
 
 # COMMAND ----------
 
+# MAGIC %sql show tables
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Stream *flight_with_weather_bronze table* to other table. You can make a data changes directly on the stream. 
+
+# COMMAND ----------
+
 # MAGIC %sql
+# MAGIC -- restore to the first table version 
 # MAGIC restore table flight_with_weather_bronze version as of 0
 
 # COMMAND ----------
 
 # MAGIC %sql 
+# MAGIC -- check the number of rows in the source table
 # MAGIC select count(*) from flight_with_weather_bronze
 
 # COMMAND ----------
@@ -52,8 +62,8 @@ event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
 
 # COMMAND ----------
 
-
 # Read from delta lake table
+# In order to limit input rate you can use : maxFilesPerTrigger (how many new files to be considered in every micro batch, default is 1000). maxBytesPerTrigger (how much data will be processed in each micro-batch)
 from pyspark.sql.functions import to_json, struct, col
 
 tabledf = spark \
@@ -73,6 +83,10 @@ checkpointPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.n
 # COMMAND ----------
 
 #write from delta table to new delta table
+#another options are:
+#trigger(once=True) will run the stream as a single batch at once
+#trigger(availableNow=True) will find optimal batch sizes for you
+
 query = tabledf \
     .writeStream \
     .format("delta") \
@@ -80,7 +94,7 @@ query = tabledf \
     .outputMode("append") \
     .option("path", outputPath) \
     .option("checkpointLocation", checkpointPath) \
-    .trigger(availableNow=True) \
+    .trigger(processingTime = '10 seconds') \
     .start()
 
 # COMMAND ----------
@@ -127,7 +141,8 @@ spark.conf.set("table.location", outputPath)
 
 # MAGIC %sql
 # MAGIC create or replace temp view DL_records_view
-# MAGIC as select * from flight_with_weather_bronze where AirportCode = 'SJU'
+# MAGIC as select * from flight_with_weather_bronze 
+# MAGIC where AirportCode = 'SJU'
 
 # COMMAND ----------
 
