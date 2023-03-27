@@ -71,7 +71,7 @@ query = autoload_to_table(data_source = input_path,
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT count(*) FROM streaming_target_table
+# MAGIC SELECT * FROM streaming_target_table
 
 # COMMAND ----------
 
@@ -102,6 +102,11 @@ query = autoload_to_table(data_source = input_path,
 
 # MAGIC %sql
 # MAGIC DESCRIBE HISTORY streaming_target_table
+
+# COMMAND ----------
+
+#monitor Auto Loader processing!
+%sql SELECT * FROM cloud_files_state("abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/autoloader_source_folder/checkpoint/");
 
 # COMMAND ----------
 
