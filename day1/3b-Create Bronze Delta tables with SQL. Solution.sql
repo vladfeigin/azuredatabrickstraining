@@ -30,17 +30,17 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 -- COMMAND ----------
 
-create schema flight
+create schema flight_demo
 
 -- COMMAND ----------
 
 -- Please use unique name
 
-use flight
+use flight_demo
 
 -- COMMAND ----------
 
@@ -58,11 +58,11 @@ or replace temp view flight_delay_bronze_view using csv options (
 
 -- COMMAND ----------
 
-drop table if exists flight_delay_bronze_new;
+drop table if exists flight_delay_bronze;
 
-create table flight_delay_bronze_new
+create table flight_delay_bronze
 using delta options(
-'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/vladi/flight_delay_bronze_new/'
+'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/FlightDelaysWithAirportCodes'
 )
 as 
 select * from flight_delay_bronze_view
@@ -70,48 +70,7 @@ select * from flight_delay_bronze_view
 
 -- COMMAND ----------
 
-create table flight_delay_bronze_new
-using delta options(
-'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/vladi/flight_delay_bronze_new/'
-)
-
-
--- COMMAND ----------
-
-select count(*) from flight_delay_bronze_new
-
--- COMMAND ----------
-
-select count(*) from flight_delay_bronze_new where Carrier = 'DL'
-
--- COMMAND ----------
-
-delete from flight_delay_bronze_new 
-where Carrier = 'DL'
-
--- COMMAND ----------
-
-describe history flight_delay_bronze_new
-
--- COMMAND ----------
-
-restore table flight_delay_bronze_new  version as of 10
-
--- COMMAND ----------
-
-select * from flight_delay_bronze_new version as of 0
-
--- COMMAND ----------
-
-drop table flight_delay_bronze_new
-
--- COMMAND ----------
-
-select * from flight_delay_bronze limit 10
-
--- COMMAND ----------
-
-describe extended  flight_delay_bronze
+select count(*) from flight_delay_bronze
 
 -- COMMAND ----------
 
@@ -129,7 +88,7 @@ create or replace temp view airport_code_location_bronze_view
 using csv options (
   header = "true",
   inferSchema = "true",
-  path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean (2).csv"
+  path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/AirportCodeLocationLookupClean.csv"
 )
 
 -- COMMAND ----------
@@ -137,7 +96,7 @@ using csv options (
 drop table if exists airport_code_location_bronze;
 create table airport_code_location_bronze
 options(
-'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/AirportCodeLocation/'
+'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/AirportCodeLocationLookupClean/'
 )
 as 
 select * from airport_code_location_bronze_view
@@ -175,10 +134,6 @@ select * from flight_with_weather_bronze limit 10
 
 -- COMMAND ----------
 
-show tables 
-
--- COMMAND ----------
-
 -- MAGIC %python 
 -- MAGIC display(dbutils.fs.ls(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/"))
 
@@ -199,5 +154,4 @@ select * from flight_delay_bronze_view
 
 -- COMMAND ----------
 
-describe extended flight_delay_bronze_part
 
