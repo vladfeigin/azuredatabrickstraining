@@ -20,7 +20,7 @@ print (container_name)
 #Initialize access to container 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -32,7 +32,7 @@ event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC use flights
+# MAGIC use flight_demo
 
 # COMMAND ----------
 
@@ -42,12 +42,6 @@ event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
 
 # MAGIC %md
 # MAGIC Stream *flight_with_weather_bronze table* to other table. You can make a data changes directly on the stream. 
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- restore to the first table version 
-# MAGIC restore table flight_with_weather_bronze version as of 0
 
 # COMMAND ----------
 
@@ -64,7 +58,7 @@ event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
 
 # Read from delta lake table
 # In order to limit input rate you can use : maxFilesPerTrigger (how many new files to be considered in every micro batch, default is 1000). maxBytesPerTrigger (how much data will be processed in each micro-batch)
-from pyspark.sql.functions import to_json, struct, col
+#from pyspark.sql.functions import to_json, struct, col
 
 tabledf = spark \
     .readStream \
@@ -77,13 +71,14 @@ tabledf = spark \
 # COMMAND ----------
 
 #define checkpoint for stream
-outputPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/output_t1_2_t2"
-checkpointPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/checkpoint_t1_2_t2/"
+outputPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/output"
+checkpointPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/checkpoint"
 
 # COMMAND ----------
 
 #write from delta table to new delta table
 #another options are:
+#.trigger(processingTime = '10 seconds') \
 #trigger(once=True) will run the stream as a single batch at once
 #trigger(availableNow=True) will find optimal batch sizes for you
 
@@ -94,7 +89,6 @@ query = tabledf \
     .outputMode("append") \
     .option("path", outputPath) \
     .option("checkpointLocation", checkpointPath) \
-    .trigger(processingTime = '10 seconds') \
     .start()
 
 # COMMAND ----------
@@ -129,7 +123,7 @@ spark.conf.set("table.location", outputPath)
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC select * from flight_with_weather_bronze_streamed_eh
+# MAGIC select * from flight_with_weather_bronze_streamed_eh limit 10
 
 # COMMAND ----------
 
@@ -149,7 +143,3 @@ spark.conf.set("table.location", outputPath)
 # MAGIC %sql
 # MAGIC insert into flight_with_weather_bronze 
 # MAGIC select * from DL_records_view
-
-# COMMAND ----------
-
-
