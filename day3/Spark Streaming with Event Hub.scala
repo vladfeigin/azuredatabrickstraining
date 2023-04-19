@@ -16,7 +16,7 @@ println (container_name)
 //Initialize access to container 
 spark.conf.set(s"fs.azure.account.auth.type.$storage_account.dfs.core.windows.net", "SAS")
 spark.conf.set(s"fs.azure.sas.token.provider.type.$storage_account.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(s"fs.azure.sas.fixed.token.$storage_account.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(s"fs.azure.sas.fixed.token.$storage_account.dfs.core.windows.net", "sp=racwdlmeo&st=2023-03-25T10:44:33Z&se=2023-05-31T18:44:33Z&spr=https&sv=2021-12-02&sr=c&sig=0cKmo1mfJvwXXAaViczNXGSXI60BMsPM5urqr9WBSNQ%3D")
 
 // COMMAND ----------
 
@@ -27,17 +27,11 @@ val EVENT_HUB_SECRET = sys.env.get("EVENT_HUB_SECRET_KEY").getOrElse("")
 // COMMAND ----------
 
 // MAGIC %sql 
-// MAGIC use flights
+// MAGIC use flight_demo
 
 // COMMAND ----------
 
-// MAGIC %sql
-// MAGIC restore table flight_with_weather_bronze version as of 0
-
-// COMMAND ----------
-
-// MAGIC %sql 
-// MAGIC select count(*) from flight_with_weather_bronze
+// MAGIC %sql show tables
 
 // COMMAND ----------
 
@@ -48,8 +42,8 @@ import org.apache.spark.eventhubs.{ ConnectionStringBuilder, EventHubsConf, Even
 
 // To connect to an Event Hub, EntityPath is required as part of the connection string.
 // Here, we assume that the connection string from the Azure portal does not have the EntityPath part.
-val connectionString = ConnectionStringBuilder(s"Endpoint=sb://eventhubdemons303474.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=$EVENT_HUB_SECRET")
-  .setEventHubName("flight-weather-20-partitions-test")
+val connectionString = ConnectionStringBuilder(s"Endpoint=sb://vlad-etoro-tests.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=v1Q/tRbvfvDOgndVycWC+urbUvZXAF8m4+AEhMU0SvU=")
+  .setEventHubName("etoro-test-5-part")
   .build
 
 val eventHubsConf = EventHubsConf(connectionString)
@@ -66,6 +60,11 @@ val eventHubsConf = EventHubsConf(connectionString)
 
 // COMMAND ----------
 
+// MAGIC %sql
+// MAGIC select count(*) from flight_delay_delta
+
+// COMMAND ----------
+
 // Read from delta lake table
 
 import org.apache.spark.sql.functions.{to_json, struct, col}
@@ -75,14 +74,14 @@ val tabledf = spark
   .option("ignoreChanges", "true")
   .option("maxBytesPerTrigger", 5096)
   .format("delta")
-  .table("flight_with_weather_bronze")
+  .table("flight_delay_delta")
   .select("*")
   .select(to_json(struct(col("*"))).alias("body")).drop("*")
 
 // COMMAND ----------
 
 //define checkpoint for stream
-val checkpointPath = s"abfss://$container_name@$storage_account.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/checkpoint_flightwithweather_bronze"
+val checkpointPath = s"abfss://$container_name@$storage_account.dfs.core.windows.net/FlightsDelays/stream/checkpoint/demo1"
 
 
 // COMMAND ----------
@@ -94,11 +93,11 @@ val query =
   tabledf
     .writeStream
     .format("eventhubs")
-    .queryName("write from delta table to EH")   
+    .queryName("reads from delta table writes to EH")   
     .outputMode("update") 
     .options(eventHubsConf.toMap)
     .option("checkpointLocation", checkpointPath)
-    .trigger(Trigger.ProcessingTime("0 seconds"))
+    .trigger(Trigger.ProcessingTime("10 seconds"))
     .start()
 
 // COMMAND ----------
