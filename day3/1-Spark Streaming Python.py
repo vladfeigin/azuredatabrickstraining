@@ -24,13 +24,6 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 
 # COMMAND ----------
 
-#read env variables (in cluster level), env variable in the cluster level
-import os
-
-event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
-
-# COMMAND ----------
-
 # MAGIC %sql 
 # MAGIC use flight_demo
 

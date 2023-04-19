@@ -24,21 +24,8 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 
 # COMMAND ----------
 
-#read env variables (in cluster level)
-import os
-
-event_hub_secret = os.environ.get("EVENT_HUB_SECRET_KEY", "")
-
-
-# COMMAND ----------
-
 # MAGIC %sql 
 # MAGIC use flights
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC restore table flight_with_weather_bronze version as of 0
 
 # COMMAND ----------
 
@@ -71,8 +58,8 @@ display(tabledf)
 # COMMAND ----------
 
 #define checkpoint for stream
-outputPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/output_t1_2_t2"
-checkpointPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/checkpoint_t1_2_t2/"
+outputPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/output/aggregation/"
+checkpointPath = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/stream/flightwithweather/checkpoint/aggregation/"
 
 # COMMAND ----------
 
@@ -98,8 +85,8 @@ spark.conf.set("table.location", outputPath)
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC drop table if exists flight_with_weather_bronze_streamed_eh;
-# MAGIC create table flight_with_weather_bronze_streamed_eh
+# MAGIC drop table if exists flight_with_weather_bronze_streamed_aggr;
+# MAGIC create table flight_with_weather_bronze_streamed_aggr
 # MAGIC using delta location '${table.location}'
 
 # COMMAND ----------
@@ -110,4 +97,4 @@ spark.conf.set("table.location", outputPath)
 
 # COMMAND ----------
 
-# MAGIC %sql select * from flight_with_weather_bronze_streamed_eh
+# MAGIC %sql select * from flight_with_weather_bronze_streamed_aggr
