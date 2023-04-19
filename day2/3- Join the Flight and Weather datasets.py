@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -27,7 +27,7 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flights
+# MAGIC use flight_demo
 
 # COMMAND ----------
 
@@ -66,14 +66,14 @@ display(dfFlightDelaysWithWeather)
 #dfFlightDelaysWithWeather.write.mode("overwrite").save("/mnt/sparkcontainer/Gold/flight_delays_with_weather")
 
 dfFlightDelaysWithWeather.write.mode("overwrite").option("header","true").\
-csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/gold/vladi/FlightDelayWithWeather/")
+csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/gold/FlightDelayWithWeather/")
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC DROP TABLE IF EXISTS flight_delays_with_weather;
 # MAGIC CREATE TABLE flight_delays_with_weather
-# MAGIC USING CSV LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/gold/vladi/FlightDelayWithWeather/"
+# MAGIC USING CSV LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/gold/FlightDelayWithWeather/"
 
 # COMMAND ----------
 
