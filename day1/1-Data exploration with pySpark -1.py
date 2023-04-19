@@ -19,7 +19,7 @@ data_folder_name = 'FlightsDelays'
 # Set up Spark configuration for SAS token in order to access Azure Datalake
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -49,6 +49,8 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 # MAGIC In this example we list the content of ADLS folder _FlightsDelays_ in ADLS container:
 
 # COMMAND ----------
+
+#display(dbutils.fs.ls("/mnt/sandboxes/FlightsDelays/"))
 
 display(dbutils.fs.ls( f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/"))
 
@@ -116,7 +118,6 @@ display(df.groupBy("DepDel15").count())
 
 # Check how many flights per month
 # We can see that July is most busy months 
-
 from pyspark.sql import functions as F
 # Group the data by the Month column and count the number of rows in each group ans sort it
 res = df.groupBy("Month").agg(F.count("*").alias("Count")).sort(F.desc("Count"))
@@ -196,7 +197,7 @@ print (f"{percentage_nulls_in_DepDel15} % null values in DepDel15 column")
 # COMMAND ----------
 
 #let's do it simpler with dbutils
-t = dbutils.data.summarize(df)
+dbutils.data.summarize(df)
 
 # COMMAND ----------
 
