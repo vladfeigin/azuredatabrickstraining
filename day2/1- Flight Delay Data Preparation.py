@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net","sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -46,7 +46,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC use flights
+# MAGIC use flight_demo
 
 # COMMAND ----------
 
@@ -93,10 +93,6 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md Finally, we do not need all 20 columns present in the flight_delays_with_airport_codes dataset, so we will pare down the columns, or features, in the dataset to the 12 we do need.
-
-# COMMAND ----------
-
-dfFlightDelays = spark.sql("select * from flight_delay_bronze")
 
 # COMMAND ----------
 
@@ -172,7 +168,7 @@ dfFlightDelays_Clean.createOrReplaceTempView("flight_delays_view")
 
 # COMMAND ----------
 
-dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightDelay/")
+dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/")
 
 
 # COMMAND ----------
@@ -182,14 +178,9 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 # MAGIC 
 # MAGIC create table flight_delay_silver
 # MAGIC using delta 
-# MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightDelay/'
+# MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/'
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC describe table extended flight_delay_silver
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from flight_delay_silver limit 10
