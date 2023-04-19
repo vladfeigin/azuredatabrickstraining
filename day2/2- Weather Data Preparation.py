@@ -19,7 +19,7 @@ print (container_name)
 # MAGIC %python
 # MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 # MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-# MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+# MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -36,7 +36,15 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flights
+# MAGIC use flight_demo
+
+# COMMAND ----------
+
+# MAGIC %sql show tables
+
+# COMMAND ----------
+
+# MAGIC %sql describe extended flight_with_weather_bronze
 
 # COMMAND ----------
 
@@ -174,7 +182,7 @@ dfWeather_Clean.printSchema()
 
 # COMMAND ----------
 
-dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightWeather")
+dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather")
 
 # COMMAND ----------
 
@@ -182,7 +190,7 @@ dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage
 # MAGIC DROP TABLE IF EXISTS flight_weather_silver;
 # MAGIC 
 # MAGIC CREATE TABLE flight_weather_silver
-# MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/vladi/FlightWeather"
+# MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather"
 
 # COMMAND ----------
 
@@ -193,7 +201,3 @@ dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage
 
 # MAGIC %sql
 # MAGIC select count(*) from flight_weather_silver
-
-# COMMAND ----------
-
-
