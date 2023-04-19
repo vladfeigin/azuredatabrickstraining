@@ -17,7 +17,7 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 -- COMMAND ----------
 
@@ -31,7 +31,7 @@
 -- COMMAND ----------
 
 -- switch to our DB
-use flights
+use flight_demo
 
 
 -- COMMAND ----------
@@ -44,7 +44,8 @@ create or replace table flight_delay_delta
 using delta options(
 'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelayDelta/'
 )
-as select * from flights_delays_external_303474
+as select * from flight_delay_bronze
+
 
 -- COMMAND ----------
 
@@ -61,9 +62,13 @@ describe history flight_delay_delta
 
 -- COMMAND ----------
 
+select count(*), carrier from flight_delay_delta group by carrier
+
+-- COMMAND ----------
+
 update flight_delay_delta
-set Carrier = 'DL01'
-where Carrier = 'DL'
+set Carrier = 'OO01'
+where Carrier = 'OO'
 
 -- COMMAND ----------
 
@@ -78,7 +83,7 @@ describe history flight_delay_delta
 -- COMMAND ----------
 
 delete from flight_delay_delta
-where Carrier = 'DL01'
+where Carrier = 'OO01'
 
 -- COMMAND ----------
 
@@ -91,12 +96,12 @@ describe history flight_delay_delta
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta where Carrier = 'DL01'
+select count(*) from flight_delay_delta where Carrier = 'OO01'
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta version as of 1
-where Carrier = 'DL01'
+select count(*) from flight_delay_delta version as of 4
+where Carrier = 'OO01'
 
 -- COMMAND ----------
 
@@ -106,12 +111,12 @@ where Carrier = 'DL01'
 -- COMMAND ----------
 
 -- No problem with Delta 
-restore table flight_delay_delta version as of 1
+restore table flight_delay_delta version as of 4
 
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta where Carrier = 'DL01'
+select count(*) from flight_delay_delta where Carrier = 'OO01'
 
 -- COMMAND ----------
 
@@ -177,7 +182,28 @@ select count(*) from flight_delay_delta
 
 -- COMMAND ----------
 
-vacuum flight_delay_delta
+-- MAGIC %md
+-- MAGIC Vacuum
+
+-- COMMAND ----------
+
+SET spark.databricks.delta.retentionDurationCheck.enabled = false;
+SET spark.databricks.delta.vacuum.logging.enabled = true;
+ 
+
+-- COMMAND ----------
+
+VACUUM flight_delay_delta DRY RUN
+--VACUUM flight_delay_delta RETAIN 1 HOURS 
+
+-- COMMAND ----------
+
+optimize flight_delay_delta
+
+-- COMMAND ----------
+
+optimize flight_delay_delta
+zorder by (Year, Month, DayOfMonth)
 
 -- COMMAND ----------
 
@@ -185,7 +211,3 @@ vacuum flight_delay_delta
 -- MAGIC ##### Exercise 
 -- MAGIC 
 -- MAGIC Use time travel and restore _flight_delay_delta_ table to the version before Insert Into
-
--- COMMAND ----------
-
-
