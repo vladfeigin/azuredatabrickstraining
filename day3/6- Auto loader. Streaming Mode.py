@@ -55,7 +55,7 @@ dbutils.fs.ls( "abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/autol
 
 # COMMAND ----------
 
-input_path = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/autoloader_source_folder/input/"
+input_path = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/autoloader_source_folder/input_new/"
 checkpoint_path = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/autoloader_source_folder/checkpoint/"
 output_path = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/autoloader_source_folder/output/"
 schema_location = f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/autoloader_source_folder/schema/"
@@ -105,9 +105,4 @@ query = autoload_to_table(data_source = input_path,
 
 # COMMAND ----------
 
-#monitor Auto Loader processing!
-%sql SELECT * FROM cloud_files_state("abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/autoloader_source_folder/checkpoint/");
-
-# COMMAND ----------
-
-
+# MAGIC %sql SELECT * FROM cloud_files_state("abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/autoloader_source_folder/checkpoint1/");
