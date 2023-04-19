@@ -10,14 +10,17 @@
 -- MAGIC dbutils.widgets.removeAll()
 -- MAGIC dbutils.widgets.text("storage_account", "")
 -- MAGIC dbutils.widgets.text("container_name", "")
+-- MAGIC dbutils.widgets.text("table_name", "")
 
 -- COMMAND ----------
 
 -- MAGIC %python
 -- MAGIC storage_account = getArgument("storage_account")
 -- MAGIC container_name = getArgument("container_name")
+-- MAGIC table_name = getArgument("table_name","xxxx")
 -- MAGIC print (storage_account)
 -- MAGIC print (container_name)
+-- MAGIC print (table_name)
 
 -- COMMAND ----------
 
@@ -33,7 +36,7 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 -- COMMAND ----------
 
@@ -51,7 +54,7 @@
 -- COMMAND ----------
 
 
-create schema flights
+create schema flights_sql_demo
 
 -- COMMAND ----------
 
@@ -59,7 +62,7 @@ show schemas
 
 -- COMMAND ----------
 
-describe schema flights
+describe schema flights_sql_demo
 
 -- COMMAND ----------
 
@@ -71,7 +74,7 @@ describe schema flights
 
 -- COMMAND ----------
 
-use flights
+use flights_sql_demo
 
 -- COMMAND ----------
 
@@ -82,22 +85,24 @@ use flights
 -- COMMAND ----------
 
 -- Note we use header = "true"
-drop table if exists flights_delays_external_303474;
+drop table if exists flights_delays_external;
 
-create table flights_delays_external_303474
+create table flights_delays_external
 using csv options (
-  path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',
-  header = "true");
+  path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',header = "true");
   
 
 -- COMMAND ----------
 
--- MAGIC %sql
--- MAGIC show tables
+select * from flights_delays_external
 
 -- COMMAND ----------
 
-describe extended flights_delays_external_303474
+show tables
+
+-- COMMAND ----------
+
+describe extended flights_delays_external
 
 -- COMMAND ----------
 
@@ -111,7 +116,7 @@ describe extended flights_delays_external_303474
 -- COMMAND ----------
 
 -- History works only with Delta Lake format, this table is CSV format
-describe history flights_delays_external_303474
+describe history flights_delays_external
 
 -- COMMAND ----------
 
@@ -119,31 +124,25 @@ describe history flights_delays_external_303474
 
 -- COMMAND ----------
 
-select * from flights_delays_external_303474 limit 10
-
--- COMMAND ----------
-
 select DepDel15, count(*) as number_of_delays
-from flights_delays_external_303474
+from flights_delays_external
 group by DepDel15
 
 -- COMMAND ----------
 
 -- Note distinct counts null values
-
 select distinct (DepDel15)
-from flights_delays_external_303474
+from flights_delays_external
 
 -- COMMAND ----------
 
 -- Count distinct doesn't count null values
-
 select count (distinct (DepDel15)) as DepDel15_Valid
-from flights_delays_external_303474
+from flights_delays_external
 
 -- COMMAND ----------
 
-describe table flights_delays_external_303474
+describe table flights_delays_external
 
 -- COMMAND ----------
 
@@ -158,9 +157,9 @@ describe table flights_delays_external_303474
 
 -- COMMAND ----------
 
-drop table if exists flights_delays_external_typed_303474;
+drop table if exists flights_delays_external_typed;
 
-create table flights_delays_external_typed_303474 (
+create table flights_delays_external_typed (
   year int,
   month int,
   dayofmonth int,
@@ -189,8 +188,8 @@ create table flights_delays_external_typed_303474 (
 -- COMMAND ----------
 
 -- You can use "inferSchema" = "true" option to infer types instead specifying types as we did above
-drop table if exists flights_delays_external_typed_infered_303474;
-create table flights_delays_external_typed_infered_303474 (
+drop table if exists flights_delays_external_typed_infered;
+create table flights_delays_external_typed_infered (
 ) using csv options (
   path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',
   header = "true",
@@ -199,11 +198,11 @@ create table flights_delays_external_typed_infered_303474 (
 
 -- COMMAND ----------
 
-describe extended  flights_delays_external_typed_303474
+describe extended  flights_delays_external_typed
 
 -- COMMAND ----------
 
-describe extended flights_delays_external_typed_infered_303474
+describe extended flights_delays_external_typed_infered
 
 -- COMMAND ----------
 
@@ -224,7 +223,7 @@ describe extended flights_delays_external_typed_infered_303474
     originairportname,
     sum(depdel15) as origindelay15min
   from
-    flights_delays_external_typed_303474
+    flights_delays_external_typed
   group by
     originairportname
 )
@@ -247,15 +246,15 @@ limit 10
 -- COMMAND ----------
 
 create
-or replace table flights_delays_managed_delta_303474 as
+or replace table flights_delays_managed_delta as
 select
   *
 from
-  flights_delays_external_typed_303474
+  flights_delays_external_typed
 
 -- COMMAND ----------
 
-describe extended flights_delays_managed_delta_303474
+describe extended flights_delays_managed_delta
 
 -- COMMAND ----------
 
@@ -270,9 +269,13 @@ describe extended flights_delays_managed_delta_303474
 
 -- COMMAND ----------
 
+describe detail flights_delays_managed_delta
+
+-- COMMAND ----------
+
 -- MAGIC %python
--- MAGIC #Let's structure of Delta table
--- MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/flights.db/flights_delays_managed_delta_303474/"))
+-- MAGIC #Let's structure of Delta table dbfs:/user/hive/warehouse/flights_delays_managed_delta
+-- MAGIC display(dbutils.fs.ls("dbfs:/user/hive/warehouse/flights_delays_managed_delta/_delta_log"))
 
 -- COMMAND ----------
 
@@ -291,7 +294,7 @@ describe extended flights_delays_managed_delta_303474
 -- COMMAND ----------
 
  create
-or replace temp view flights_delays_temp_view_303474(
+or replace temp view flights_delays_temp_view(
   year int,
   month int,
   day int,
@@ -334,28 +337,37 @@ or replace temp view flights_delays_temp_view_303474(
 -- COMMAND ----------
 
 create
-or replace table flights_delays_303474 as
+or replace table flights_delays_ctas as
 select
   *
 from
-  flights_delays_temp_view_303474
+  flights_delays_temp_view
+
+-- COMMAND ----------
+
+describe extended flights_delays_ctas
 
 -- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC You can create a table in the specific location in Azure Blob Storage by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
+-- MAGIC 
 -- MAGIC In this case an `external` table will be created.
 
 -- COMMAND ----------
 
 create
-or replace table flights_delays_with_path_option_303474
-using delta options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/tableName/')
+or replace table flights_delays_with_path_option_ext
+using delta options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/${table_name}/')
 as
 select
   *
 from
-  flights_delays_temp_view_303474
+  flights_delays_temp_view
+
+-- COMMAND ----------
+
+describe extended flights_delays_with_path_option_ext
 
 -- COMMAND ----------
 
@@ -373,19 +385,15 @@ from
 -- COMMAND ----------
 
 create
-or replace table flights_delays_enriched_303474 as
+or replace table flights_delays_enriched as
 select
   current_timestamp() as ingestiontime,
   current_user as user,
   *
 from
-  flights_delays_temp_view_303474
+  flights_delays_temp_view
 
 -- COMMAND ----------
 
 
-select * from flights_delays_enriched_303474 limit 10
-
--- COMMAND ----------
-
-
+select * from flights_delays_enriched limit 10
