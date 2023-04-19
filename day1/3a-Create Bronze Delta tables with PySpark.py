@@ -29,7 +29,7 @@ print (table_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-02-04T09:29:31Z&se=2023-03-04T17:29:31Z&spr=https&sv=2021-06-08&sr=c&sig=CfujDbdCE2LuJpPEnaq9ooexPK3zN5kf4gbEX8vMlWY%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
 
 # COMMAND ----------
 
@@ -94,16 +94,12 @@ display(dbutils.fs.ls(bronze_table_location_partitioned))
 
 # COMMAND ----------
 
-# This way we pass parameters to the SQL, which is NOT a widget  
-# First define Spark parameter in Python cell 
-spark.conf.set("tables.location", bronze_table_location)
+# MAGIC %md
+# MAGIC Create external table pointing to the files we just copied
 
 # COMMAND ----------
 
-# MAGIC 
-# MAGIC %sql
-# MAGIC -- Second do SET of this parameter in %sql set. See below how we use `table.location` parameter 
-# MAGIC SET table_location = ${tables.location}
+spark.conf.set("tables.location", bronze_table_location)
 
 # COMMAND ----------
 
@@ -126,6 +122,10 @@ spark.conf.set("tables.location", bronze_table_location)
 
 # MAGIC %sql
 # MAGIC select * from ${table_name}
+
+# COMMAND ----------
+
+display(_sqldf)
 
 # COMMAND ----------
 
