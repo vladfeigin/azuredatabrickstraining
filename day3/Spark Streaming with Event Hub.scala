@@ -42,7 +42,7 @@ import org.apache.spark.eventhubs.{ ConnectionStringBuilder, EventHubsConf, Even
 
 // To connect to an Event Hub, EntityPath is required as part of the connection string.
 // Here, we assume that the connection string from the Azure portal does not have the EntityPath part.
-val connectionString = ConnectionStringBuilder(s"Endpoint=sb://vlad-etoro-tests.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=v1Q/tRbvfvDOgndVycWC+urbUvZXAF8m4+AEhMU0SvU=")
+val connectionString = ConnectionStringBuilder(s"Endpoint=sb://vlad-etoro-tests.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=*********")
   .setEventHubName("etoro-test-5-part")
   .build
 
