@@ -22,7 +22,7 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeo&st=2023-03-25T10:44:33Z&se=2023-05-31T18:44:33Z&spr=https&sv=2021-12-02&sr=c&sig=0cKmo1mfJvwXXAaViczNXGSXI60BMsPM5urqr9WBSNQ%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlme&st=2023-07-04T19:26:40Z&se=2023-07-31T03:26:40Z&spr=https&sv=2022-11-02&sr=c&sig=Fiu54RFeYlwLfGbcg2RviaTVSHw7nDpcl4TAbiHmZhQ%3D")
 
 -- COMMAND ----------
 
@@ -75,11 +75,23 @@ from raw_kafka_data_string_view
 
 -- COMMAND ----------
 
+schema_of_json('{"device":"macOS","ecommerce":{},"event_name":"checkout","event_previous_timestamp":1593880801027797,"event_timestamp":1593880822506642,"geo":{"city":"Traverse City","state":"MI"},"items":[{"item_id":"M_STAN_T","item_name":"Standard Twin Mattress","item_revenue_in_usd":595.0,"price_in_usd":595.0,"quantity":1}],"traffic_source":"google","user_first_touch_timestamp":1593879413256859,"user_id":"UA000000107384208"}')
+
+-- COMMAND ----------
+
 select * from typed_kafka_events limit 10
 
 -- COMMAND ----------
 
-describe typed_kafka_events
+DESCRIBE EXTENDED typed_kafka_events
+
+-- COMMAND ----------
+
+select * from typed_kafka_events
+
+-- COMMAND ----------
+
+describe extended typed_kafka_events
 
 -- COMMAND ----------
 
@@ -164,10 +176,11 @@ select * from transaction_flat limit 10
 -- MAGIC %md
 -- MAGIC ###### Additonal array functions
 -- MAGIC `array_distinct` removes duplicate elements from array
--- MAGIC 
+-- MAGIC
 -- MAGIC `flatten` combines multiple arrays into single array
--- MAGIC 
+-- MAGIC
 -- MAGIC `collect_set` create a set of unique values for a field. Aggregative function.
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -247,6 +260,10 @@ as select * from sales_enriched_view
 
 -- COMMAND ----------
 
+describe extended sales_enriched
+
+-- COMMAND ----------
+
 select * from sales_enriched limit 10
 
 -- COMMAND ----------
@@ -258,18 +275,18 @@ select * from sales_enriched limit 10
 
 -- MAGIC %md 
 -- MAGIC Spark supports 
--- MAGIC 
+-- MAGIC
 -- MAGIC `union`
--- MAGIC 
+-- MAGIC
 -- MAGIC `minus`
--- MAGIC 
+-- MAGIC
 -- MAGIC `intersect`
 
 -- COMMAND ----------
 
 -- MAGIC %md 
 -- MAGIC ####Pivot Tables
--- MAGIC 
+-- MAGIC
 -- MAGIC Turns specific column values into columns.
 
 -- COMMAND ----------
@@ -306,12 +323,13 @@ select device,
 
 -- MAGIC %md
 -- MAGIC ####High Order Functions
--- MAGIC 
+-- MAGIC
 -- MAGIC `Filter`
--- MAGIC 
+-- MAGIC
 -- MAGIC `Exists`
--- MAGIC 
+-- MAGIC
 -- MAGIC `Transform`
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -341,7 +359,7 @@ select
   standard_items,
   transform (
     standard_items,
-    i -> cast (i.item_revenue_in_usd * 3.4 as double)
+    i ->  (i.item_revenue_in_usd * 3.4)
   ) as nis_price
 from
   standard_iems_events_veiew

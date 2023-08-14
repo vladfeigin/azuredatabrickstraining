@@ -40,17 +40,20 @@ select * from dpteam
 -- COMMAND ----------
 
 create
-or replace function func(member string) 
-returns string
+or replace temp function func_temp(member string) returns string
 return concat("Mr. ", member);
 
 
 -- COMMAND ----------
 
 create or replace temp view dpteam_view as
-select id, func(member) from dpteam;
+select id, func_temp(member) from dpteam;
 
 select * from dpteam_view 
+
+-- COMMAND ----------
+
+show  functions
 
 -- COMMAND ----------
 
@@ -59,8 +62,7 @@ describe function extended func
 -- COMMAND ----------
 
 create
-or replace function func2(member string)
-returns string
+or replace function func2(member string) returns string
 return case 
 when member = 'kim' then concat("Ms. ", member)
 else concat("Mr. ", member)

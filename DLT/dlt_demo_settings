@@ -1,0 +1,49 @@
+{
+    "id": "5e12af43-1611-4bb5-be4d-cde1773d106c",
+    "pipeline_type": "WORKSPACE",
+    "clusters": [
+        {
+            "label": "default",
+            "spark_conf": {
+                "fs.azure.account.auth.type.asastoremcw303474.dfs.core.windows.net": "SAS",
+                "fs.azure.sas.token.provider.type.asastoremcw303474.dfs.core.windows.net": "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider",
+                "fs.azure.sas.fixed.token.asastoremcw303474.dfs.core.windows.net": "<put your SAS token here>"
+            },
+            "autoscale": {
+                "min_workers": 1,
+                "max_workers": 1,
+                "mode": "ENHANCED"
+            }
+        }
+    ],
+    "development": true,
+    "continuous": false,
+    "channel": "CURRENT",
+    "photon": false,
+    "libraries": [
+        {
+            "notebook": {
+                "path": "/dlt_demo/Orders_DLT"
+            }
+        },
+        {
+            "notebook": {
+                "path": "/dlt_demo/Customers_DLT"
+            }
+        },
+        {
+            "notebook": {
+                "path": "/dlt_demo/Status_DLT"
+            }
+        }
+    ],
+    "name": "live_delta_tables_demo_v1",
+    "edition": "ADVANCED",
+    "storage": "abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/dlt_demo/tables",
+    "configuration": {
+        "storage_account": "asastoremcw303474",
+        "container_name": "labs-303474"
+    },
+    "target": "dlt_demo_v1",
+    "data_sampling": false
+}
