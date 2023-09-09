@@ -1,10 +1,10 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC ##### Create Bronze tables with pySpark
+# MAGIC ## Create Bronze tables with pySpark
 # MAGIC Similary as we created Bronze tables with SQL in the previous exercise in this notebook we create delta tables with pySpark and SQL
-# MAGIC 
+# MAGIC
 # MAGIC Note that table name in this example is the same as file name (without .csv extension). Enter correct table into `table_name` widget in the notebook top.
-# MAGIC 
+# MAGIC
 # MAGIC For every new table enter the table name in the widgets in the top of this notebok and run the same notebook without changing anything
 
 # COMMAND ----------
@@ -12,24 +12,25 @@
 dbutils.widgets.removeAll()
 dbutils.widgets.text("storage_account", "")
 dbutils.widgets.text("container_name", "")
-dbutils.widgets.text("table_name", "")
+dbutils.widgets.text("file_name", "")
 
 # COMMAND ----------
 
 storage_account = getArgument("storage_account")
 container_name = getArgument("container_name")
-table_name = getArgument("table_name")
-file_name = table_name + ".csv"
-print (storage_account)
-print (container_name)
-print (file_name)
-print (table_name)
+file_name = getArgument("file_name") 
+table_name = file_name.split(".")[0] + "_bronze"
+
+print (f"storage account: {storage_account}")
+print (f"container name: {container_name}")
+print (f"file name: {file_name}")
+print (f"table name: {table_name}")
 
 # COMMAND ----------
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 # COMMAND ----------
 
@@ -74,9 +75,12 @@ df_bronze.count()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ##### Partitioning data
+# MAGIC #### Partitioning data (Optional)
+# MAGIC This section is optional. You can skip it to: 
+# MAGIC **Create external table pointing to the files we just copied**
+# MAGIC
 # MAGIC Often there is a need to partition data for better query performance.
-# MAGIC 
+# MAGIC
 # MAGIC Most common way to partition data is by record date or ingestion date but also based on the most common filters you use in queries.
 
 # COMMAND ----------
@@ -95,33 +99,30 @@ display(dbutils.fs.ls(bronze_table_location_partitioned))
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Create external table pointing to the files we just copied
-
-# COMMAND ----------
-
-spark.conf.set("tables.location", bronze_table_location)
+# MAGIC #### Create external table pointing to the files we just copied
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC We created Delta files and also partitioned it, not it's time to create External table pointing to those files.
+# MAGIC We created Delta files, now it's time to create External table pointing to those files.
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flights
+# MAGIC use flights_demo
+
+# COMMAND ----------
+
+spark.sql(f"""
+CREATE TABLE IF NOT EXISTS {table_name} 
+USING DELTA 
+LOCATION '{bronze_table_location}' 
+""")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS ${table_name};
-# MAGIC CREATE TABLE ${table_name}
-# MAGIC USING DELTA LOCATION '${tables.location}'
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from ${table_name}
+# MAGIC select * from airportcodelocationlookupclean_bronze
 
 # COMMAND ----------
 
@@ -134,40 +135,37 @@ _sqldf.count()
 
 # COMMAND ----------
 
-# MAGIC %sql describe extended ${table_name}
-
-# COMMAND ----------
-
-# MAGIC %sql select count(1) from ${table_name}
+# MAGIC %sql show tables 
+# MAGIC
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 
+# MAGIC
 # MAGIC ##### Exercise 
-# MAGIC 
+# MAGIC
 # MAGIC Create a new **SQL** notebook for creating Delta Tables in Bronze. Create all 3 external tables in Bronze layer.
-# MAGIC 
+# MAGIC
 # MAGIC Hint: 
-# MAGIC 
+# MAGIC
 # MAGIC       1. Use Temporary views which reads data from original CSV files with "inferSchema" = "true"
-# MAGIC 
+# MAGIC
 # MAGIC       2. Use CTAS to create External tables
 # MAGIC       
 # MAGIC When you create External table, use ***path*** option(see example in the second notebook _"2-Data exploration with SQL"_ ):
-# MAGIC 
+# MAGIC
 # MAGIC ***options(
 # MAGIC   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightWithWeather/"
 # MAGIC )***   to indicate location of the files in datalake.
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC Create partitioned table (select any table you want for this exercise)
-# MAGIC 
+# MAGIC
 # MAGIC Hint: 
-# MAGIC 
+# MAGIC
 # MAGIC In CTAS when you create query, use ***partitioned by (Year,Month,DayofMonth)*** 
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC for example:
 # MAGIC  
 # MAGIC _create table my_part_table_name
@@ -176,5 +174,5 @@ _sqldf.count()
 # MAGIC partitioned by (Year,Month,DayofMonth)
 # MAGIC as
 # MAGIC select * from my_temp_view_
-# MAGIC 
+# MAGIC
 # MAGIC Run query by using partition fields (in WHERE clause)

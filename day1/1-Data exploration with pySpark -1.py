@@ -1,11 +1,11 @@
 # Databricks notebook source
 # MAGIC %md 
 # MAGIC ##### Access ADLS Using SAS token
-# MAGIC 
+# MAGIC
 # MAGIC Note that the recommended way to access ADLS from Databricks is by using AAD Service Principal and the backed by Azure Key Vault Databricks Secret Scope.
-# MAGIC 
+# MAGIC
 # MAGIC Here for simplicity we use SAS token.
-# MAGIC 
+# MAGIC
 # MAGIC Note: Replace the storage account and coontainer with your names.  
 
 # COMMAND ----------
@@ -19,18 +19,18 @@ data_folder_name = 'FlightsDelays'
 # Set up Spark configuration for SAS token in order to access Azure Datalake
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##### ABFS protocol
-# MAGIC 
+# MAGIC
 # MAGIC ABFS protocol (Azure Blob File System) - Azure Blob storage driver for Hadoop required by Spark.
 # MAGIC ABFS is part of Apache Hadoop and is included in many of the commercial distributions of Hadoop. It's a recommended protocol today to use when working with ADLS v2
-# MAGIC 
+# MAGIC
 # MAGIC The objects in ADLS are represented as URIs with the following URI schema:
-# MAGIC 
+# MAGIC
 # MAGIC _abfs[s]://container_name@account_name.dfs.core.windows.net/<path>/<path>/<file_name>_
 # MAGIC   
 # MAGIC If you add an **_'s'_** at the end (abfss) then the ABFS Hadoop client driver will ALWAYS use Transport Layer Security (TLS) irrespective of the authentication method chosen.
@@ -39,13 +39,13 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 
 # MAGIC %md
 # MAGIC ##### dbutils
-# MAGIC 
+# MAGIC
 # MAGIC Databricks utility tool
-# MAGIC 
+# MAGIC
 # MAGIC You can do many opertations with dbutils, for more details see [dbutils](https://learn.microsoft.com/en-us/azure/databricks/dev-tools/databricks-utils)
-# MAGIC 
+# MAGIC
 # MAGIC Run `dbutils.fs.help()` for the full list of functions.
-# MAGIC 
+# MAGIC
 # MAGIC In this example we list the content of ADLS folder _FlightsDelays_ in ADLS container:
 
 # COMMAND ----------
@@ -173,7 +173,7 @@ display(result)
 # COMMAND ----------
 
 # MAGIC %md Check the number of null values in DepDel15, this colimn states the departure delay of at least      in 15 min.
-# MAGIC 
+# MAGIC
 # MAGIC If we want to use this field for delay prediction we should fix those records with null values. 
 
 # COMMAND ----------
@@ -206,7 +206,7 @@ dbutils.data.help("summarize")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 
+# MAGIC
 # MAGIC #### Exercise 
 # MAGIC Run the same analysis for FlightWeatherWithAirportCode.csv file.
 # MAGIC Start from cell number 6

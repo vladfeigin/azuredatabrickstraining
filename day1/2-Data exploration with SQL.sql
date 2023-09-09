@@ -1,7 +1,7 @@
 -- Databricks notebook source
 -- MAGIC %md 
 -- MAGIC ##### Define notebook variables with widgets
--- MAGIC 
+-- MAGIC
 -- MAGIC Widgets is a great way to use variables in the notebook session across all cells
 
 -- COMMAND ----------
@@ -26,9 +26,9 @@
 
 -- MAGIC %md
 -- MAGIC ##### Access ADLS Using SAS token
--- MAGIC 
+-- MAGIC
 -- MAGIC Note that the recommended way to access ADLS from Databricks is by using AAD Service Principal and the backed by Azure Key Vault Databricks Secret Scope.
--- MAGIC 
+-- MAGIC
 -- MAGIC Here for simplicity we use SAS token.
 
 -- COMMAND ----------
@@ -36,7 +36,7 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 -- COMMAND ----------
 
@@ -48,13 +48,13 @@
 
 -- MAGIC %md
 -- MAGIC ##### Create schema and tables
--- MAGIC 
+-- MAGIC
 -- MAGIC After we explored the data we create schemas and tables in order to work with the data as we get used to work with regular data bases
 
 -- COMMAND ----------
 
 
-create schema flights_sql_demo
+create schema if not exists flights_demo
 
 -- COMMAND ----------
 
@@ -62,32 +62,30 @@ show schemas
 
 -- COMMAND ----------
 
-describe schema flights_sql_demo
+describe schema extended flights_demo
 
 -- COMMAND ----------
 
 -- MAGIC %md 
 -- MAGIC ##### Create external table
 -- MAGIC We create a table in `flights` schema, which we created previously.
--- MAGIC 
+-- MAGIC
 -- MAGIC Notice using ***_header_*** option, which allows to define columns names from the header
 
 -- COMMAND ----------
 
-use flights_sql_demo
+use flights_demo
 
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC 
+-- MAGIC
 -- MAGIC ###### Note! If you run in the same workspace - Please add to the table names unique prefix, example 5 digits of your ID to avoid conflicts 
 
 -- COMMAND ----------
 
 -- Note we use header = "true"
-drop table if exists flights_delays_external;
-
-create table flights_delays_external
+create table if not exists  flights_delays_external
 using csv options (
   path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',header = "true");
   
@@ -108,9 +106,9 @@ describe extended flights_delays_external
 
 -- MAGIC %md
 -- MAGIC Pay attention that this table is ***External*** and the table format is CSV. Since it's an extrernal table, the location is the original one: the Azure Data Lake Storage (ADLS) container.
--- MAGIC 
+-- MAGIC
 -- MAGIC Also you can see that there is no history for non-delta tables.
--- MAGIC 
+-- MAGIC
 -- MAGIC The history is supported by Delta format but this table is in CSV format.
 
 -- COMMAND ----------
@@ -148,18 +146,17 @@ describe table flights_delays_external
 
 -- MAGIC %md
 -- MAGIC What's wrong with this table defintion?
--- MAGIC 
+-- MAGIC
 -- MAGIC Since the original data is in CSV format, Spark can not infer precisely the correct fields types (by default). 
--- MAGIC 
+-- MAGIC
 -- MAGIC You can enforce schema inference also for CSV, JSON formats by setting format option : `inferSchema=true`, see below examples.
--- MAGIC 
+-- MAGIC
 -- MAGIC However the recomended way is to create table and define the types strictly.
 
 -- COMMAND ----------
 
-drop table if exists flights_delays_external_typed;
 
-create table flights_delays_external_typed (
+create table if not exists flights_delays_external_typed (
   year int,
   month int,
   dayofmonth int,
@@ -188,8 +185,7 @@ create table flights_delays_external_typed (
 -- COMMAND ----------
 
 -- You can use "inferSchema" = "true" option to infer types instead specifying types as we did above
-drop table if exists flights_delays_external_typed_infered;
-create table flights_delays_external_typed_infered (
+create table if not exists flights_delays_external_typed_infered (
 ) using csv options (
   path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',
   header = "true",
@@ -208,11 +204,11 @@ describe extended flights_delays_external_typed_infered
 
 -- MAGIC %md
 -- MAGIC ##### CTEs
--- MAGIC 
+-- MAGIC
 -- MAGIC Spark supports CTEs - Common Table Expessions.
--- MAGIC 
+-- MAGIC
 -- MAGIC CTEs defines a temporary result set that can be referenced multiple times in other following CTE queries 
--- MAGIC 
+-- MAGIC
 -- MAGIC In order to define CTE - you use `WITH` clause
 
 -- COMMAND ----------
@@ -240,7 +236,7 @@ limit 10
 
 -- MAGIC %md
 -- MAGIC ##### Create Table As Select (CTAS)
--- MAGIC 
+-- MAGIC
 -- MAGIC Create Delta Lake tables with CTAS
 
 -- COMMAND ----------
@@ -260,11 +256,11 @@ describe extended flights_delays_managed_delta
 
 -- MAGIC %md
 -- MAGIC Now the table type is `Managed`.  By default, if we don't specify the output format,  the tables are created in Delta format.
--- MAGIC 
+-- MAGIC
 -- MAGIC For managed tables, the data is copied from original location (ADLS container) to the `schema` location in dbfs (Databricks File System). 
--- MAGIC 
+-- MAGIC
 -- MAGIC The Databricks File System (DBFS) is a distributed file system mounted into an Azure Databricks Workspace and available on Azure Databricks clusters. 
--- MAGIC 
+-- MAGIC
 -- MAGIC If you delete a ***Managed*** table all its data will be deleted as well (not the case with `External` tables)
 
 -- COMMAND ----------
@@ -286,9 +282,9 @@ describe detail flights_delays_managed_delta
 
 -- MAGIC %md
 -- MAGIC Note that CTAS syntax doesn't support schema definition (it infers the schema from query results)
--- MAGIC 
+-- MAGIC
 -- MAGIC The recommended way to overcome it is to create a Temporay View, define or infer automatically schema and then run CTAS (similar as we did before but we used intermediate tables rather than temp views)
--- MAGIC 
+-- MAGIC
 -- MAGIC Temporary Viewes exist only during Spark Session.
 
 -- COMMAND ----------
@@ -351,7 +347,7 @@ describe extended flights_delays_ctas
 
 -- MAGIC %md
 -- MAGIC You can create a table in the specific location in Azure Blob Storage by using ***options ('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/new table location/')***
--- MAGIC 
+-- MAGIC
 -- MAGIC In this case an `external` table will be created.
 
 -- COMMAND ----------
@@ -372,14 +368,14 @@ describe extended flights_delays_with_path_option_ext
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 
+-- MAGIC
 -- MAGIC ##### Enriching data with additional meta-data
 
 -- COMMAND ----------
 
 -- MAGIC %md 
 -- MAGIC Databricks provides many built-in functions. In this example we use: `current_timestamp()` and `curent_user` functions.
--- MAGIC 
+-- MAGIC
 -- MAGIC There are many others, more details [databricks built-in functions](https://learn.microsoft.com/en-us/azure/databricks/sql/language-manual/functions/current_timestamp)
 
 -- COMMAND ----------

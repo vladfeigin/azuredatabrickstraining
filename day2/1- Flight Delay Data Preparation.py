@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net","sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net","sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 # COMMAND ----------
 
@@ -36,7 +36,7 @@ from pyspark.sql import functions as F
 
 # MAGIC %md First, let's execute the below command to make sure all three tables were created.
 # MAGIC You should see an output like the following:
-# MAGIC 
+# MAGIC
 # MAGIC | database | tableName | isTemporary |
 # MAGIC | --- | --- | --- |
 # MAGIC | flights | flight_delay_bronze... | false |
@@ -46,7 +46,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC use flight_demo
+# MAGIC use flights_demo
 
 # COMMAND ----------
 
@@ -69,7 +69,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md Because all 20 columns are displayed, you can scroll the grid horizontally. Scroll until you see the **DepDel15** column. This column displays a 1 when the flight was delayed at least 15 minutes and 0 if there was no such delay. In the model you will construct, you will try to predict the value of this column for future data.
-# MAGIC 
+# MAGIC
 # MAGIC Let's execute another query that shows us how many rows do not have a value in the DepDel15 column.
 
 # COMMAND ----------
@@ -88,7 +88,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from flight_delay_bronze
+# MAGIC select * from flight_delay_bronze limit 10
 
 # COMMAND ----------
 
@@ -100,7 +100,7 @@ from pyspark.sql import functions as F
 
 # COMMAND ----------
 
-dfFlightDelays.printSchema()
+_sqldf.printSchema()
 
 # COMMAND ----------
 
@@ -109,7 +109,7 @@ dfFlightDelays.printSchema()
 # COMMAND ----------
 
 # MAGIC %md To perform our data changes, we have multiple options, but in this case, we’ve chosen to take advantage of some useful features to perform the following tasks:
-# MAGIC 
+# MAGIC
 # MAGIC * Remove rows with missing values
 # MAGIC * Generate a new column, named “CRSDepHour,” which contains the rounded down value from CRSDepTime
 # MAGIC * Pare down columns to only those needed for our model
@@ -153,7 +153,7 @@ dfFlightDelays_Clean.createOrReplaceTempView("flight_delays_view")
 # COMMAND ----------
 
 # MAGIC %md You should see a count of **2,691,974**. This is equal to the original 2,719,418 rows minus the 27,444 rows with missing data in the DepDel15 column.
-# MAGIC 
+# MAGIC
 # MAGIC Now save the contents of the temporary view into a new DataFrame.
 
 # COMMAND ----------
@@ -163,7 +163,7 @@ dfFlightDelays_Clean.createOrReplaceTempView("flight_delays_view")
 # COMMAND ----------
 
 # MAGIC %md 
-# MAGIC 
+# MAGIC
 # MAGIC The `flight_delays_view` table was created as a local table using `createOrReplaceTempView`, and is therefore temporary. Local tables are tied to the Spark/SparkSQL Context that was used to create their associated DataFrame. When you shut down the SparkSession that is associated with the cluster (such as shutting down the cluster) then local, temporary tables will disappear. If we want our cleansed data to remain permanently, we should save a DataFrame to storage.
 
 # COMMAND ----------
@@ -174,9 +174,7 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop table if exists flight_delay_silver;
-# MAGIC 
-# MAGIC create table flight_delay_silver
+# MAGIC create table if not exists flight_delay_silver
 # MAGIC using delta 
 # MAGIC location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightDelay/'
 
@@ -184,3 +182,12 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 
 # MAGIC %sql
 # MAGIC describe table extended flight_delay_silver
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from flight_delay_silver limit 10
+
+# COMMAND ----------
+
+

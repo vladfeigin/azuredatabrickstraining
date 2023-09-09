@@ -19,7 +19,7 @@ print (container_name)
 # MAGIC %python
 # MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 # MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-# MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+# MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 # COMMAND ----------
 
@@ -36,7 +36,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flight_demo
+# MAGIC use flights_demo
 
 # COMMAND ----------
 
@@ -49,7 +49,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from flight_with_weather_bronze
+# MAGIC select * from flight_with_weather_bronze limit 10
 
 # COMMAND ----------
 
@@ -110,7 +110,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md To preform our data cleanup, we will execute a Python script, in which we will perform the following tasks:
-# MAGIC 
+# MAGIC
 # MAGIC * WindSpeed: Replace missing values with 0.0, and “M” values with 0.005
 # MAGIC * HourlyPrecip: Replace missing values with 0.0, and “T” values with 0.005
 # MAGIC * SeaLevelPressure: Replace “M” values with 29.92 (the average pressure)
@@ -127,7 +127,7 @@ dfWeather = spark.sql("select AirportCode, Month, Day, Time, WindSpeed, SeaLevel
 
 # COMMAND ----------
 
-dfWeather.show()
+display(dfWeather)
 
 # COMMAND ----------
 
@@ -187,9 +187,7 @@ dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS flight_weather_silver;
-# MAGIC 
-# MAGIC CREATE TABLE flight_weather_silver
+# MAGIC CREATE TABLE IF NOT EXISTS flight_weather_silver
 # MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather"
 
 # COMMAND ----------

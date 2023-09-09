@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 # COMMAND ----------
 
@@ -27,7 +27,7 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flight_demo
+# MAGIC use flights_demo
 
 # COMMAND ----------
 
@@ -71,9 +71,13 @@ csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDel
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS flight_delays_with_weather;
-# MAGIC CREATE TABLE flight_delays_with_weather
+# MAGIC CREATE TABLE IF NOT EXISTS flight_delays_with_weather
 # MAGIC USING CSV LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/gold/FlightDelayWithWeather/"
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC show tables
 
 # COMMAND ----------
 

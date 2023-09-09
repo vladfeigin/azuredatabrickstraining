@@ -1,13 +1,13 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC ### Exercise. Build Bronze Data Lake layer.
--- MAGIC 
+-- MAGIC ## Exercise. Build Bronze Data Lake layer.
+-- MAGIC
 -- MAGIC Bronze usually contains the raw data, converted into Delta Lake format. This data is infrequently accessed (cold data). Good for archiving to reduce storage cost.
--- MAGIC 
+-- MAGIC
 -- MAGIC Create 3 extrenal delta tables: _flight_delay_bronze_, _airport_code_location_bronze_, _flight_with_weather_bronze_.
--- MAGIC 
+-- MAGIC
 -- MAGIC Use temp view with inferSchema = "true"to load original CSV files from the FlightsDelays folder and then use CTAS to create Delta Lake tables in ./bronze folder.
--- MAGIC 
+-- MAGIC
 -- MAGIC Every table should be located in the dedicated folder. For example table flight_delay_bronze will be in abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay folder
 
 -- COMMAND ----------
@@ -30,22 +30,22 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-03-21T06:47:36Z&se=2023-06-04T13:47:36Z&spr=https&sv=2021-12-02&sr=c&sig=ioUnTbdgyKcGvCEUWOW875R32Vi8BinW%2BA8SasK7Nlo%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 -- COMMAND ----------
 
-create schema flight_demo
+show tables
 
 -- COMMAND ----------
 
 -- Please use unique name
 
-use flight_demo
+use flights_demo
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ###### FlightDelaysWithAirportCodes 
+-- MAGIC ##### FlightDelaysWithAirportCodes 
 
 -- COMMAND ----------
 
@@ -58,9 +58,7 @@ or replace temp view flight_delay_bronze_view using csv options (
 
 -- COMMAND ----------
 
-drop table if exists flight_delay_bronze;
-
-create table flight_delay_bronze
+create table if not exists flight_delay_bronze
 using delta options(
 'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/FlightDelaysWithAirportCodes'
 )
@@ -80,7 +78,7 @@ select count(*) from flight_delay_bronze
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ###### AirportCodeLocationLookup 
+-- MAGIC ##### AirportCodeLocationLookup 
 
 -- COMMAND ----------
 
@@ -93,8 +91,7 @@ using csv options (
 
 -- COMMAND ----------
 
-drop table if exists airport_code_location_bronze;
-create table airport_code_location_bronze
+create table if not exists airport_code_location_bronze
 options(
 'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/AirportCodeLocationLookupClean/'
 )
@@ -108,7 +105,7 @@ select * from airport_code_location_bronze limit 10
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ###### FlightWeatherWithAirportCode
+-- MAGIC ##### FlightWeatherWithAirportCode
 
 -- COMMAND ----------
 
@@ -121,8 +118,7 @@ using csv options (
 
 -- COMMAND ----------
 
-drop table if exists flight_with_weather_bronze;
-create table flight_with_weather_bronze 
+create table if not exists flight_with_weather_bronze 
 options(
   path = "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightWithWeather/"
 )
@@ -140,7 +136,7 @@ select * from flight_with_weather_bronze limit 10
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ###### Create partitioned table
+-- MAGIC #### Create partitioned table (Optional)
 
 -- COMMAND ----------
 
