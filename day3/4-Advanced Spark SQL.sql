@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC ##### This notebook demonstrates advanced Spark SQL capabilities
+-- MAGIC #### This notebook demonstrates advanced Spark SQL capabilities
 
 -- COMMAND ----------
 
@@ -22,12 +22,13 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlme&st=2023-07-04T19:26:40Z&se=2023-07-31T03:26:40Z&spr=https&sv=2022-11-02&sr=c&sig=Fiu54RFeYlwLfGbcg2RviaTVSHw7nDpcl4TAbiHmZhQ%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC Prepare json data
+-- MAGIC ## Manipulate Json 
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -58,6 +59,17 @@ select * from raw_kafka_data_string_view limit 10
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC
+-- MAGIC #####NOTE: Spark SQL has built-in functionality to directly interact with nested data stored as JSON strings or struct types.
+-- MAGIC
+-- MAGIC Use **`:`** syntax in queries to access subfields in JSON strings
+-- MAGIC
+-- MAGIC Use **`.`** syntax in queries to access subfields in struct types
+-- MAGIC
+
+-- COMMAND ----------
+
 -- for string type (not structured) we can use : notation to traverse json
 select value:device, value:event_name, value:geo:city from raw_kafka_data_string_view
 
@@ -69,13 +81,19 @@ select value from raw_kafka_data_string_view where value:event_name != "" limit 
 
 -- COMMAND ----------
 
-create or replace temp view typed_kafka_events as
-select from_json(value,schema_of_json('{"device":"macOS","ecommerce":{},"event_name":"checkout","event_previous_timestamp":1593880801027797,"event_timestamp":1593880822506642,"geo":{"city":"Traverse City","state":"MI"},"items":[{"item_id":"M_STAN_T","item_name":"Standard Twin Mattress","item_revenue_in_usd":595.0,"price_in_usd":595.0,"quantity":1}],"traffic_source":"google","user_first_touch_timestamp":1593879413256859,"user_id":"UA000000107384208"}')) as event
-from raw_kafka_data_string_view
+-- MAGIC %md
+-- MAGIC **schema_of_json()** returns the schema derived from an example JSON string.
+-- MAGIC **from_json()** parses a column containing a JSON string into a struct type using the specified schema.
 
 -- COMMAND ----------
 
-schema_of_json('{"device":"macOS","ecommerce":{},"event_name":"checkout","event_previous_timestamp":1593880801027797,"event_timestamp":1593880822506642,"geo":{"city":"Traverse City","state":"MI"},"items":[{"item_id":"M_STAN_T","item_name":"Standard Twin Mattress","item_revenue_in_usd":595.0,"price_in_usd":595.0,"quantity":1}],"traffic_source":"google","user_first_touch_timestamp":1593879413256859,"user_id":"UA000000107384208"}')
+select schema_of_json('{"device":"macOS","ecommerce":{},"event_name":"checkout","event_previous_timestamp":1593880801027797,"event_timestamp":1593880822506642,"geo":{"city":"Traverse City","state":"MI"},"items":[{"item_id":"M_STAN_T","item_name":"Standard Twin Mattress","item_revenue_in_usd":595.0,"price_in_usd":595.0,"quantity":1}],"traffic_source":"google","user_first_touch_timestamp":1593879413256859,"user_id":"UA000000107384208"}')
+
+-- COMMAND ----------
+
+create or replace temp view typed_kafka_events as
+select from_json(value,schema_of_json('{"device":"macOS","ecommerce":{},"event_name":"checkout","event_previous_timestamp":1593880801027797,"event_timestamp":1593880822506642,"geo":{"city":"Traverse City","state":"MI"},"items":[{"item_id":"M_STAN_T","item_name":"Standard Twin Mattress","item_revenue_in_usd":595.0,"price_in_usd":595.0,"quantity":1}],"traffic_source":"google","user_first_touch_timestamp":1593879413256859,"user_id":"UA000000107384208"}')) as event
+from raw_kafka_data_string_view
 
 -- COMMAND ----------
 
@@ -84,14 +102,6 @@ select * from typed_kafka_events limit 10
 -- COMMAND ----------
 
 DESCRIBE EXTENDED typed_kafka_events
-
--- COMMAND ----------
-
-select * from typed_kafka_events
-
--- COMMAND ----------
-
-describe extended typed_kafka_events
 
 -- COMMAND ----------
 
@@ -123,7 +133,14 @@ where items.item_revenue_in_usd is not null
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ##### Arrays
+-- MAGIC ## Manipulate Arrays
+-- MAGIC
+-- MAGIC Spark SQL has a number of functions for manipulating array data, including the following:
+-- MAGIC - **`explode()`** separates the elements of an array into multiple rows; this creates a new row for each element in an array.
+-- MAGIC - **`size()`** provides a count for the number of elements in an array for each row. 
+-- MAGIC
+-- MAGIC The code below explodes the **`items`** field (an array of structs) into multiple rows and shows events containing arrays with 3 or more items.
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -174,13 +191,17 @@ select * from transaction_flat limit 10
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ###### Additonal array functions
--- MAGIC `array_distinct` removes duplicate elements from array
+-- MAGIC ##### Additonal array functions
+-- MAGIC `array_distinct` removes duplicate elements from an array
 -- MAGIC
--- MAGIC `flatten` combines multiple arrays into single array
+-- MAGIC `flatten` combines multiple arrays into a single array
 -- MAGIC
--- MAGIC `collect_set` create a set of unique values for a field. Aggregative function.
+-- MAGIC `collect_set` create a set of unique values for a field including fields within arrays
 -- MAGIC
+
+-- COMMAND ----------
+
+select * from kafka_events_flat limit 10
 
 -- COMMAND ----------
 
@@ -211,6 +232,15 @@ group by user_id
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC
+-- MAGIC ## Join Tables
+-- MAGIC
+-- MAGIC Spark SQL supports standard **`JOIN`** operations (inner, outer, left, right, anti, cross, semi).  
+-- MAGIC Here we join the exploded events dataset with a lookup table to grab the standard printed item name.
+
+-- COMMAND ----------
+
 create or replace temp view item_lookup_price_view
 using delta
 options
@@ -219,13 +249,6 @@ options
 -- COMMAND ----------
 
 select * from item_lookup_price_view
-
--- COMMAND ----------
-
-create or replace view sales_enriched as 
-select * from (
-select * from transaction_flat 
-)
 
 -- COMMAND ----------
 
@@ -253,9 +276,11 @@ from
 
 -- COMMAND ----------
 
-drop table sales_enriched;
+select * from sales_enriched_view limit 10
 
-create table sales_enriched 
+-- COMMAND ----------
+
+create or replace table sales_enriched 
 as select * from sales_enriched_view
 
 -- COMMAND ----------
@@ -269,12 +294,12 @@ select * from sales_enriched limit 10
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ####Set Operators
+-- MAGIC ##Set Operators
 
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC Spark supports 
+-- MAGIC Spark supports set operations:
 -- MAGIC
 -- MAGIC `union`
 -- MAGIC
@@ -285,7 +310,7 @@ select * from sales_enriched limit 10
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC ####Pivot Tables
+-- MAGIC ##Pivot Tables
 -- MAGIC
 -- MAGIC Turns specific column values into columns.
 
@@ -322,7 +347,7 @@ select device,
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ####High Order Functions
+-- MAGIC ##High Order Functions
 -- MAGIC
 -- MAGIC `Filter`
 -- MAGIC
@@ -334,6 +359,13 @@ select device,
 -- COMMAND ----------
 
 select * from kafka_events_flat limit 10
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC ####filter
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -350,6 +382,13 @@ where size (standard_items) > 0
 -- COMMAND ----------
 
 select * from standard_iems_events_veiew limit 10
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC #### transform
+-- MAGIC
 
 -- COMMAND ----------
 
