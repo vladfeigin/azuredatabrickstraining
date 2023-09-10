@@ -50,6 +50,10 @@
 -- MAGIC ##### Create schema and tables
 -- MAGIC
 -- MAGIC After we explored the data we create schemas and tables in order to work with the data as we get used to work with regular data bases
+-- MAGIC
+-- MAGIC Note that the location of a schema (database), in example below is in the default location under dbfs:/user/hive/warehouse/ and the schema directory is the name of the schema with the .db extension
+-- MAGIC
+-- MAGIC However you can specify schema (database) location: `CREATE SCHEMA IF NOT EXISTS ${da.schema_name}_custom_location LOCATION '${working_dir}/${da.schema_name}.db'; `
 
 -- COMMAND ----------
 
@@ -68,7 +72,7 @@ describe schema extended flights_demo
 
 -- MAGIC %md 
 -- MAGIC ##### Create external table
--- MAGIC We create a table in `flights` schema, which we created previously.
+-- MAGIC We create a table in `flights_demo` schema, which we created previously.
 -- MAGIC
 -- MAGIC Notice using ***_header_*** option, which allows to define columns names from the header
 
@@ -85,6 +89,7 @@ use flights_demo
 -- COMMAND ----------
 
 -- Note we use header = "true"
+-- create or replace table.. also works
 create table if not exists  flights_delays_external
 using csv options (
   path = 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/FlightDelaysWithAirportCodes.csv',header = "true");
