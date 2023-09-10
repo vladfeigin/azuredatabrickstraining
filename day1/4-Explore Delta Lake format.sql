@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC ## Explore Delta Lake format
+-- MAGIC # Explore Delta Lake format
 
 -- COMMAND ----------
 
@@ -257,7 +257,75 @@ describe history flight_delay_delta
 -- MAGIC %md
 -- MAGIC
 -- MAGIC
--- MAGIC ## Cleaning Up Stale Files
+-- MAGIC ## Cloning Delta Lake Tables
+-- MAGIC Delta Lake has two options for efficiently copying Delta Lake tables.
+-- MAGIC
+-- MAGIC **`DEEP CLONE`** fully copies data and metadata from a source table to a target. This copy occurs incrementally.
+-- MAGIC
+-- MAGIC Because all the data files must be copied over, this type of copy takes time.
+-- MAGIC
+-- MAGIC If you wish to create a copy of a table quickly to test out applying changes without the risk of modifying the current table, **`SHALLOW CLONE`** can be a good option. Shallow clones just copy the Delta transaction logs, meaning that the data doesn't move.
+-- MAGIC
+-- MAGIC
+-- MAGIC
+
+-- COMMAND ----------
+
+CREATE OR REPLACE TABLE flight_delay_delta_deep_clone
+DEEP CLONE flight_delay_delta
+
+-- COMMAND ----------
+
+CREATE OR REPLACE TABLE flight_delay_delta_shallow_clone
+SHALLOW CLONE flight_delay_delta
+
+-- COMMAND ----------
+
+select * from flight_delay_delta_shallow_clone limit 10
+
+-- COMMAND ----------
+
+delete from  flight_delay_delta_shallow_clone where carrier = 'MQ'
+
+-- COMMAND ----------
+
+select count(*) from flight_delay_delta_shallow_clone where carrier = 'MQ'
+
+-- COMMAND ----------
+
+select count(*) from flight_delay_delta where carrier = 'MQ'
+
+-- COMMAND ----------
+
+describe extended flight_delay_delta_shallow_clone
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC dbutils.fs.ls("dbfs:/user/hive/warehouse/flights_demo.db/flight_delay_delta_shallow_clone")
+-- MAGIC
+
+-- COMMAND ----------
+
+describe history flight_delay_delta_shallow_clone
+
+-- COMMAND ----------
+
+describe extended flight_delay_delta
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC
+-- MAGIC dbutils.fs.ls("abfss://labs-303474@asastoremcw303474.dfs.core.windows.net/FlightsDelays/bronze/FlightDelayDelta")
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC
+-- MAGIC ### Cleaning up old versions
 -- MAGIC
 -- MAGIC Databricks will automatically clean up stale files in Delta Lake tables.
 -- MAGIC
