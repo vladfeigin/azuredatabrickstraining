@@ -278,7 +278,7 @@ SET spark.databricks.delta.vacuum.logging.enabled = true;
 
 --By default, VACUUM will prevent you from deleting files less than 7 days old.
 --If you run VACUUM on a Delta table, you lose the ability time travel back to a version older than the specified data retention period.
---If you want to keep the latest table version you can add "RETAIN 0 HOURS", but it's not recommended. The recommendation is to stick to default (7 days)
+--If you want to keep the latest table version you can add "RETAIN 0 HOURS", but it's not recommended. The recommendation is to stick to default (7 days) or follow your use case
 
 --VACUUM flight_delay_delta 
 VACUUM flight_delay_delta RETAIN 0 HOURS --DRY RUN

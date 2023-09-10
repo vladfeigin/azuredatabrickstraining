@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC #### This notebook demonstrates advanced Spark SQL capabilities
+-- MAGIC # This notebook demonstrates advanced Spark SQL capabilities
 
 -- COMMAND ----------
 
@@ -129,6 +129,69 @@ select * from kafka_events_flat where geo.city='Fargo'
 select items.item_revenue_in_usd
 from kafka_events_flat
 where items.item_revenue_in_usd is not null
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ## Generated Columns
+-- MAGIC
+-- MAGIC Generated columns are a special type of column whose values are automatically generated based on a user-specified function over other columns in the Delta table. 
+-- MAGIC
+
+-- COMMAND ----------
+
+create or replace table kafka_events_flat_time_formatted(
+ user_id string,
+ device string,
+ event_name string,
+ traffic_source string,
+ event_timestamp bigint,
+ event_date date GENERATED ALWAYS as (
+    cast(cast(event_timestamp/1e6 as timestamp) as date)))
+
+
+-- COMMAND ----------
+
+SET spark.databricks.delta.schema.autoMerge.enabled=true; 
+
+merge into kafka_events_flat_time_formatted a
+using kafka_events_flat b
+on a.user_id = b.user_id and a.event_timestamp = b.event_timestamp
+when not matched then
+  insert *
+
+
+-- COMMAND ----------
+
+select * from kafka_events_flat_time_formatted limit 10
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC ## Table Constraints
+-- MAGIC
+-- MAGIC
+-- MAGIC Because Delta Lake enforces schema on write, Databricks can support standard SQL constraint management clauses to ensure the quality and integrity of data added to a table.
+-- MAGIC
+-- MAGIC Databricks currently support two types of constraints:
+-- MAGIC * <a href="https://docs.databricks.com/delta/delta-constraints.html#not-null-constraint" target="_blank">**`NOT NULL`** constraints</a>
+-- MAGIC * <a href="https://docs.databricks.com/delta/delta-constraints.html#check-constraint" target="_blank">**`CHECK`** constraints</a>
+-- MAGIC
+-- MAGIC In both cases, you must ensure that no data violating the constraint is already in the table prior to defining the constraint. Once a constraint has been added to a table, data violating the constraint will result in write failure.
+-- MAGIC
+
+-- COMMAND ----------
+
+ALTER TABLE kafka_events_flat_time_formatted ADD CONSTRAINT date_validation CHECK (event_date >= '2020-01-01');
+
+-- COMMAND ----------
+
+ALTER TABLE kafka_events_flat_time_formatted ALTER COLUMN user_id SET NOT NULL;
+
+-- COMMAND ----------
+
+describe extended kafka_events_flat_time_formatted
 
 -- COMMAND ----------
 
