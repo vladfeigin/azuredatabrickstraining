@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net","sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net","sp=racwdlmeop&st=2024-07-15T09:02:04Z&se=2024-08-01T17:02:04Z&spr=https&sv=2022-11-02&sr=c&sig=H4C7vXC7cDFZI8hdxZBGjrD12DYU1pNgy1RfFxeXm2I%3D")
 
 # COMMAND ----------
 
@@ -46,7 +46,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC use flights_demo
+# MAGIC use flights
 
 # COMMAND ----------
 
@@ -97,10 +97,6 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %md Let's print the schema for the DataFrame.
-
-# COMMAND ----------
-
-_sqldf.printSchema()
 
 # COMMAND ----------
 
@@ -187,7 +183,3 @@ dfFlightDelays_Clean.write.format("delta").mode("overwrite").save(f"abfss://{con
 
 # MAGIC %sql
 # MAGIC select * from flight_delay_silver limit 10
-
-# COMMAND ----------
-
-

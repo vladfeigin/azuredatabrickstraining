@@ -30,7 +30,11 @@
 -- MAGIC %python
 -- MAGIC spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 -- MAGIC spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
--- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
+-- MAGIC spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeop&st=2024-07-15T09:02:04Z&se=2024-08-01T17:02:04Z&spr=https&sv=2022-11-02&sr=c&sig=H4C7vXC7cDFZI8hdxZBGjrD12DYU1pNgy1RfFxeXm2I%3D")
+
+-- COMMAND ----------
+
+use flights
 
 -- COMMAND ----------
 
@@ -40,7 +44,7 @@ show tables
 
 -- Please use unique name
 
-use flights_demo
+use flights
 
 -- COMMAND ----------
 
@@ -58,10 +62,10 @@ or replace temp view flight_delay_bronze_view using csv options (
 
 -- COMMAND ----------
 
+
 create table if not exists flight_delay_bronze
-using delta options(
-'path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/FlightDelaysWithAirportCodes'
-)
+using delta
+location 'abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay/FlightDelaysWithAirportCodes'
 as 
 select * from flight_delay_bronze_view
 
@@ -69,11 +73,6 @@ select * from flight_delay_bronze_view
 -- COMMAND ----------
 
 select count(*) from flight_delay_bronze
-
--- COMMAND ----------
-
--- MAGIC %python 
--- MAGIC display(dbutils.fs.ls(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelay"))
 
 -- COMMAND ----------
 
@@ -135,6 +134,10 @@ select * from flight_with_weather_bronze limit 10
 
 -- COMMAND ----------
 
+show tables;
+
+-- COMMAND ----------
+
 -- MAGIC %md
 -- MAGIC #### Create partitioned table (Optional)
 
@@ -147,7 +150,3 @@ options('path' 'abfss://${container_name}@${storage_account}.dfs.core.windows.ne
 partitioned by (Year, Month, DayofMonth)
 as 
 select * from flight_delay_bronze_view
-
--- COMMAND ----------
-
-
