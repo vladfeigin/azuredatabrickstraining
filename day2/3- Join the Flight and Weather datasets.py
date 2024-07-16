@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeop&st=2024-07-15T09:02:04Z&se=2024-08-01T17:02:04Z&spr=https&sv=2022-11-02&sr=c&sig=H4C7vXC7cDFZI8hdxZBGjrD12DYU1pNgy1RfFxeXm2I%3D")
 
 # COMMAND ----------
 
@@ -27,7 +27,7 @@ spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flights_demo
+# MAGIC use flights
 
 # COMMAND ----------
 
@@ -78,8 +78,3 @@ csv(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDel
 
 # MAGIC %sql 
 # MAGIC show tables
-
-# COMMAND ----------
-
-# MAGIC %sql 
-# MAGIC select count(*) from flight_delays_with_weather

@@ -18,7 +18,7 @@ print (container_name)
 
 spark.conf.set(f"fs.azure.account.auth.type.{storage_account}.dfs.core.windows.net", "SAS")
 spark.conf.set(f"fs.azure.sas.token.provider.type.{storage_account}.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.sas.FixedSASTokenProvider")
-spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwlmeo&st=2023-09-07T14:17:14Z&se=2023-11-30T23:17:14Z&spr=https&sv=2022-11-02&sr=c&sig=jyWEvg%2FzLmK9J%2BOxIp%2B8QSCKYpVmNPfKNcNIo68Rh6E%3D")
+spark.conf.set(f"fs.azure.sas.fixed.token.{storage_account}.dfs.core.windows.net", "sp=racwdlmeop&st=2024-07-15T09:02:04Z&se=2024-08-01T17:02:04Z&spr=https&sv=2022-11-02&sr=c&sig=H4C7vXC7cDFZI8hdxZBGjrD12DYU1pNgy1RfFxeXm2I%3D")
 
 # COMMAND ----------
 
@@ -35,15 +35,7 @@ from pyspark.sql import functions as F
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use flights_demo
-
-# COMMAND ----------
-
-# MAGIC %sql show tables
-
-# COMMAND ----------
-
-# MAGIC %sql describe extended flight_with_weather_bronze
+# MAGIC use flights
 
 # COMMAND ----------
 
@@ -134,10 +126,6 @@ display(dfWeather)
 
 # COMMAND ----------
 
-dfWeather.printSchema()
-
-# COMMAND ----------
-
 
 # Round Time down to the next hour, since that is the hour for which we want to use flight data. Then, add the rounded Time to a new column named "Hour", and append that column to the dfWeather DataFrame.
 df = dfWeather.withColumn('Hour', F.floor(dfWeather['Time']/100))
@@ -188,11 +176,6 @@ dfWeather_Clean.write.mode("overwrite").save(f"abfss://{container_name}@{storage
 # MAGIC %sql
 # MAGIC CREATE TABLE IF NOT EXISTS flight_weather_silver
 # MAGIC USING DELTA LOCATION "abfss://${container_name}@${storage_account}.dfs.core.windows.net/FlightsDelays/silver/FlightWeather"
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC describe extended flight_weather_silver
 
 # COMMAND ----------
 
