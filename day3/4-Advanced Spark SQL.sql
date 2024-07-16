@@ -75,6 +75,10 @@ select value:device, value:event_name, value:geo:city from raw_kafka_data_string
 
 -- COMMAND ----------
 
+describe extended raw_kafka_data_string_view
+
+-- COMMAND ----------
+
 -- you can parse json into (typed) struct objects (native Spark objects) but for this you need json schema
 -- using schema_of_json and from_json built-in Spark functions
 select value from raw_kafka_data_string_view where value:event_name != "" limit 1

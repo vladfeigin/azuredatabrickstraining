@@ -72,8 +72,8 @@ select count(*), carrier from flight_delay_delta group by carrier
 -- COMMAND ----------
 
 update flight_delay_delta
-set carrier = 'OO-01'
-where carrier = 'OO'
+set carrier = 'DL-01'
+where carrier = 'DL'
 
 -- COMMAND ----------
 
@@ -88,7 +88,7 @@ describe history flight_delay_delta
 -- COMMAND ----------
 
 delete from flight_delay_delta
-where Carrier = 'OO-01'
+where Carrier = 'DL-01'
 
 -- COMMAND ----------
 
@@ -128,7 +128,7 @@ describe detail flight_delay_delta
 
 -- MAGIC %python
 -- MAGIC
--- MAGIC delta_json_df = spark.read.json(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelayDelta/_delta_log/00000000000000000001.json")
+-- MAGIC delta_json_df = spark.read.json(f"abfss://{container_name}@{storage_account}.dfs.core.windows.net/FlightsDelays/bronze/FlightDelayDelta/_delta_log/00000000000000000011.json")
 -- MAGIC display(delta_json_df)
 -- MAGIC #The add column contains a list of all the new files written to our table; the remove column indicates those files that no longer should be included in our table.
 -- MAGIC #When we query a Delta Lake table, the query engine uses the transaction logs to resolve all the files that are valid in the current version, and ignores all other data files.
@@ -140,12 +140,12 @@ describe detail flight_delay_delta
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta where Carrier = 'OO-01'
+select count(*) from flight_delay_delta where Carrier = 'DL-01'
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta version as of 1
-where Carrier = 'OO-01'
+select count(*) from flight_delay_delta version as of 13
+where Carrier = 'DL-01'
 
 -- COMMAND ----------
 
@@ -155,12 +155,12 @@ where Carrier = 'OO-01'
 -- COMMAND ----------
 
 -- No problem with Delta 
-restore table flight_delay_delta version as of 1
+restore table flight_delay_delta version as of 13
 
 
 -- COMMAND ----------
 
-select count(*) from flight_delay_delta where Carrier = 'OO-01'
+select count(*) from flight_delay_delta where Carrier = 'DL-01'
 
 -- COMMAND ----------
 
